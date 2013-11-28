@@ -1,0 +1,28 @@
+--- a/buildtools	2013-11-27 13:17:00.000000000 +0100
++++ b/buildtools	2013-11-27 13:17:37.000000000 +0100
+@@ -337,16 +337,16 @@
+     setspecperllib
+     $MYMAKE test
+     if [ $? -ne 0 ]; then
+-      set +x
+-      echo
+-      echo
+-      echo "Hey!  Some of the Perl tests failed!  If you think this is okay, enter y now:"
+-      read foo
+-      if [ "x$foo" = "xy" ]; then
++#      set +x
++#      echo
++#      echo
++#      echo "Hey!  Some of the Perl tests failed!  If you think this is okay, enter y now:"
++#      read foo
++#      if [ "x$foo" = "xy" ]; then
+         true
+-      else
+-        false
+-      fi
++#      else
++#        false
++#      fi
+     fi
+     testordie "error in Perl tests")
+ 

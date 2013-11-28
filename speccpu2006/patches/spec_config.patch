@@ -1,0 +1,56 @@
+--- a/config/DIABLO_SPEC_CONFIG_NAME.cfg	2008-03-06 01:16:50.000000000 +0100
++++ b/config/DIABLO_SPEC_CONFIG_NAME.cfg	2013-08-13 17:15:46.000000000 +0200
+@@ -31,7 +31,7 @@
+ 
+ ignore_errors = yes
+ tune          = base
+-ext           = i386-m32-gcc42-nn
++ext           = DIABLO_SPEC_CONFIG_NAME-nn
+ output_format = asc, pdf, Screen, html
+ reportable    = 1
+ teeout        = yes
+@@ -52,9 +52,11 @@
+ # $LD_LIBRARY_PATH with something like
+ # export LD_LIBRARY_PATH=/usr/local/gcc42-0715-32/lib
+ #
+-CC           = /usr/local/bin/gcc
+-CXX          = /usr/local/bin/g++
+-FC           = /usr/local/bin/gfortran
++CC           = DIABLO_CROSSTOOLS_INSTALLED_DIR/DIABLO_CROSSTOOLS_PREFIX/bin/DIABLO_CROSSTOOLS_PREFIX-gcc
++CXX          = DIABLO_CROSSTOOLS_INSTALLED_DIR/DIABLO_CROSSTOOLS_PREFIX/bin/DIABLO_CROSSTOOLS_PREFIX-g++
++FC           = DIABLO_CROSSTOOLS_INSTALLED_DIR/DIABLO_CROSSTOOLS_PREFIX/bin/DIABLO_CROSSTOOLS_PREFIX-gfortran
++
++EXTRA_LDFLAGS=-static -Wl,-Map,$@.map
+ 
+ ## HW config
+ hw_model     = Tyan Thunder KKQS Pro (S4882)
+@@ -85,7 +87,7 @@
+ sw_base_ptrsize = 32-bit
+ sw_peak_ptrsize = 32-bit
+ 
+-
++makeflags = -j SPEC_PARALLEL_BUILD_FACTOR
+ #####################################################################
+ # Optimization
+ #####################################################################
+@@ -112,8 +114,8 @@
+ #####################################################################
+ 
+ 400.perlbench=default=default=default:
+-notes35    = 400.perlbench: -DSPEC_CPU_LINUX_IA32
+-CPORTABILITY= -DSPEC_CPU_LINUX_IA32
++notes35    = 400.perlbench: -DSPEC_CPU_LINUX
++CPORTABILITY= -DSPEC_CPU_LINUX
+ 
+ 462.libquantum=default=default=default:
+ notes60= 462.libquantum: -DSPEC_CPU_LINUX
+@@ -122,6 +124,9 @@
+ 483.xalancbmk=default=default=default:
+ CXXPORTABILITY= -DSPEC_CPU_LINUX
+ 
++482.sphinx3=default=default=default:
++CPORTABILITY= -fsigned-char
++
+ 
+ #####################################################################
+ # Portability Flags - FP
