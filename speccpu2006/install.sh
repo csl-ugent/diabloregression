@@ -31,6 +31,7 @@ checkempty() {
   fi
 }
 
+# arg 1: name of the directory to create and whose resolved path (without ".." etc) to output
 dir_make_and_resolve()
 {
    mkdir -p "$1" 
