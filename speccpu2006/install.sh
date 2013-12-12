@@ -6,7 +6,7 @@ print_help_exit() {
 cat<<HELP
 This script installs SPECCPU_2006 and configures it for building with a particular toolchain.
 
-Usage: "$0 [-n] [-k] [-f <SPEC_ARCHIVE>] [-j <SPEC_PAR_BUILD>] -d <SPEC_TARGET_DIR> -c <SPEC_CONFIG_NAME> -t <CT_INSTALLED_DIR> -p <CT_PREFIX>
+Usage: $0 [-n] [-k] [-f <SPEC_ARCHIVE>] [-j <SPEC_PAR_BUILD>] -d <SPEC_TARGET_DIR> -c <SPEC_CONFIG_NAME> -t <CT_INSTALLED_DIR> -p <CT_PREFIX>
   -n                     (opt) Do not unpack the SPEC_CPU2006 tbz install file (assume the unpacked version still exists in the current dir)
   -k                     (opt) Keep unpacked SPEC_CPU2006 install file
   -f SPEC_ARCHIVE        (opt) Specify the the speccpu2006 install file (default is CSL one under /afs)
