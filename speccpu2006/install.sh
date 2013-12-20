@@ -148,11 +148,31 @@ cd tools/src
 # some files are read-only, yet have to be overwritten
 chmod -R u+w .
 # patch the buildtools script so it doesn't complain if some perl tests fail (it's harmless)
-patch -p1 < "$PATCHES_DIR"/buildtools-ignore-harmless-specperl-error.patch >/dev/null 2>/dev/null
+patch -p1 < "$PATCHES_DIR"/buildtools-ignore-harmless-specperl-error.patch >/dev/null
+# patch md5sum so it doesn't redeclare getline/getdelim when unnecessary (causing potential useless conflicts with system headers)
+patch -p1 < "$PATCHES_DIR"/buildtools-md5sum.patch >/dev/null
+# patch Perl makefile to link against libm for miniperl
+patch -p1 < "$PATCHES_DIR"/buildtools-perl.patch >/dev/null
+# add file to tell perl that it has to link against libm for regular perl
+cat > perl-5.8.8/ext.libs << PERLLIBS
+-lm
+PERLLIBS
+# prevent testing of Zlib
+touch Compress-Zlib-1.34/spec_do_no_tests
+
 # build the SPEC tools
+export BZIP2CFLAGS=-fPIC
 ./buildtools > "$STARTUP_DIR"/spectools.log 2>&1
+if [ $? -ne 0 ]; then
+  echo  Building the SPEC CPU2006 tools failed, see spectools.log for details
+  exit 1
+fi
 cd ../..
 # the SPEC tools are now (hopefully) built
+if [ ! -f tools/output/bin/a2p ]; then
+  echo  Building the SPEC CPU2006 tools failed, see spectools.log for details
+  exit 1
+fi
 
 # remove the unpacked installer files if not prevented
 if [ x"$KEEP_UNPACKED_SPEC" = xn ]; then

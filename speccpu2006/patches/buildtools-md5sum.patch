@@ -1,0 +1,35 @@
+--- a/specmd5sum/lib/getline.h	2013-12-18 14:58:51.000000000 +0100
++++ b/specmd5sum/lib/getline.h	2013-12-19 14:23:55.000000000 +0100
+@@ -27,10 +27,15 @@
+ #  endif
+ # endif
+ 
++#if ! defined HAVE_GETLINE || ! HAVE_GETLINE
+ int
+ getline PARAMS ((char **_lineptr, size_t *_n, FILE *_stream));
+ 
++#if ! defined HAVE_GETDELIM || ! HAVE_GETDELIM
+ int
+ getdelim PARAMS ((char **_lineptr, size_t *_n, int _delimiter, FILE *_stream));
++#endif
++
++#endif /* not HAVE_GETLINE */
+ 
+ #endif /* not GETLINE_H_ */
+--- a/specmd5sum/lib/getline.c	2013-12-18 14:58:51.000000000 +0100
++++ b/specmd5sum/lib/getline.c	2013-12-19 14:23:55.000000000 +0100
+@@ -22,6 +22,8 @@
+ # include <config.h>
+ #endif
+ 
++#if ! defined HAVE_GETLINE || ! HAVE_GETLINE
++
+ /* The `getdelim' function is only declared if the following symbol
+    is defined.  */
+ #define _GNU_SOURCE	1
+@@ -153,3 +155,5 @@
+   return getstr (lineptr, n, stream, delimiter, 0);
+ }
+ #endif
++
++#endif /* not HAVE_GETLINE */

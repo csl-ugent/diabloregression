@@ -33,7 +33,7 @@
  #####################################################################
  # Optimization
  #####################################################################
-@@ -112,8 +114,8 @@
+@@ -112,15 +114,21 @@
  #####################################################################
  
  400.perlbench=default=default=default:
@@ -44,13 +44,17 @@
  
  462.libquantum=default=default=default:
  notes60= 462.libquantum: -DSPEC_CPU_LINUX
-@@ -122,6 +124,9 @@
- 483.xalancbmk=default=default=default:
- CXXPORTABILITY= -DSPEC_CPU_LINUX
+ CPORTABILITY= -DSPEC_CPU_LINUX
  
++447.dealII=default=default=default:
++CXXPORTABILITY= -include cstdlib -include cstring
++
+ 483.xalancbmk=default=default=default:
+-CXXPORTABILITY= -DSPEC_CPU_LINUX
++CXXPORTABILITY= -DSPEC_CPU_LINUX -include cstdlib -include cstring
++
 +482.sphinx3=default=default=default:
 +CPORTABILITY= -fsigned-char
-+
+ 
  
  #####################################################################
- # Portability Flags - FP

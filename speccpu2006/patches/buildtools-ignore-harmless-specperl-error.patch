@@ -1,6 +1,19 @@
 --- a/buildtools	2013-11-27 13:17:00.000000000 +0100
 +++ b/buildtools	2013-11-27 13:17:37.000000000 +0100
-@@ -337,16 +337,16 @@
+@@ -328,10 +328,11 @@
+     CFLAGS="$ALLCFLAGS $PERLCFLAGS"; export CFLAGS
+     CPPFLAGS="$ALLCPPFLAGS $PERLCPPFLAGS"; export CPPFLAGS
+     LDFLAGS="$ALLLDFLAGS $PERLLDFLAGS"; export LDFLAGS
++    EXTRALIBS="-lm"; export EXTRALIBS
+     LD_LIBRARY_PATH=`pwd`
+     DYLD_LIBRARY_PATH=`pwd`
+     export LD_LIBRARY_PATH DYLD_LIBRARY_PATH
+-    ./Configure -dOes -Ud_flock $PERLFLAGS -Ddosuid=undef -Dprefix=$INSTALLDIR -Dd_bincompat3=undef -A ldflags=-L${INSTALLDIR}/lib -A ccflags=-I${INSTALLDIR}/include -Ui_db -Ui_gdbm -Ui_ndbm -Ui_dbm -Uuse5005threads ; testordie "error configuring perl"
++    ./Configure -dOes -Ud_flock $PERLFLAGS -Ddosuid=undef -Dprefix=$INSTALLDIR -Dd_bincompat3=undef -A ldflags=-L${INSTALLDIR}/lib -A ccflags=-I${INSTALLDIR}/include -Ui_db -Ui_gdbm -Ui_ndbm -Ui_dbm -Uuse5005threads -Dcccdlflags="-fPIC -shared" -Dlddlflags="-shared -fPIC" -Duseshrplib=true ; testordie "error configuring perl"
+     $MYMAKE; testordie "error building Perl"
+     ./perl installperl; testordie "error installing Perl"
+     setspecperllib
+@@ -337,16 +338,16 @@
      setspecperllib
      $MYMAKE test
      if [ $? -ne 0 ]; then
