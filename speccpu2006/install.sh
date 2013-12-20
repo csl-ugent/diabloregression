@@ -185,10 +185,14 @@ echo Creating SPEC build configuration...
 cp config/Example-linux32-i386-gcc42.cfg config/"$SPEC_CONFIG_NAME".cfg
 sed -e "s?DIABLO_SPEC_CONFIG_NAME?$SPEC_CONFIG_NAME?g" -e "s?DIABLO_CROSSTOOLS_INSTALLED_DIR?$CROSSTOOLS_INSTALLED_DIR?g" -e "s?DIABLO_CROSSTOOLS_PREFIX?$CROSSTOOLS_PREFIX?g" -e "s?SPEC_PARALLEL_BUILD_FACTOR?$SPEC_PARALLEL_BUILD_FACTOR?g"  < "$PATCHES_DIR"/spec_config.patch | patch -p1
 
-echo
-echo "********************************"
-echo SPEC is now ready for building:
-echo cd "$SPEC_INSTALLDIR"
-echo source shrc
-echo "runspec -a build -c $SPEC_CONFIG_NAME --size=test all >specbuild.log 2>&1"
+echo Building SPEC_CPU2006...
+# restore environment to default
+set +u
+echo "  Executing: cd $SPEC_INSTALLDIR"
+cd "$SPEC_INSTALLDIR"
+echo "  Executing: source shrc"
+source shrc
+echo "  Executing: runspec -a build -c $SPEC_CONFIG_NAME --size=test all >specbuild.log 2>&1"
+runspec -a build -c $SPEC_CONFIG_NAME --size=test all >specbuild.log 2>&1
+echo Done!
 
