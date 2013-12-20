@@ -77,6 +77,11 @@ shift `expr $OPTIND - 1`
 # save starting dir
 STARTUP_DIR=`pwd`
 
+checkempty "$SPEC_INSTALLDIR" -d
+checkempty "$SPEC_CONFIG_NAME" -c
+checkempty "$CROSSTOOLS_INSTALLED_DIR" -t
+checkempty "$CROSSTOOLS_PREFIX" -p
+
 # check arguments
 case x"$UNPACK_SPEC" in
   xy) if [ ! -f "$SPEC_ARCHIVE" ]; then
@@ -92,11 +97,6 @@ case x"$UNPACK_SPEC" in
      fi
     ;;
 esac
-
-checkempty "$SPEC_INSTALLDIR" -d
-checkempty "$SPEC_CONFIG_NAME" -c
-checkempty "$CROSSTOOLS_INSTALLED_DIR" -t
-checkempty "$CROSSTOOLS_PREFIX" -p
 
 # check if we can find the patches we need
 PATCHES_DIR="$STARTUP_DIR"/patches
