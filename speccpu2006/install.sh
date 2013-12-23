@@ -115,7 +115,7 @@ if [ ! -x "$CROSSTOOLS_INSTALLED_DIR"/"$CROSSTOOLS_PREFIX"/bin/"$CROSSTOOLS_PREF
   echo "$CROSSTOOLS_INSTALLED_DIR"/"$CROSSTOOLS_PREFIX"/bin/"$CROSSTOOLS_PREFIX"-gcc does not exist or is not executable, check "<CT_INSTALLED_DIR> and <CT_PREFIX> parameters to this script"
   echo
   exit 1
-fi;
+fi
 
 # extract architecture from crosstools prefix
 SPEC_ARCH=`echo $CROSSTOOLS_PREFIX| cut -d'-' -f 1`
