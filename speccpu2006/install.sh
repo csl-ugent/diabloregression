@@ -112,7 +112,7 @@ PATCHES_DIR="`dir_make_and_resolve \"${PATCHES_DIR}\"`"
 
 # sanity check for crosstools install dir
 if [ ! -x "$CROSSTOOLS_INSTALLED_DIR"/"$CROSSTOOLS_PREFIX"/bin/"$CROSSTOOLS_PREFIX"-gcc ]; then
-  echo "$CROSSTOOLS_INSTALLED_DIR"/"$CROSSTOOLS_PREFIX"/bin/"$CROSSTOOLS_PREFIX"-gcc does not exist or is not executable, check "<CROSSTOOLS_INSTALLED_DIR> and <CROSSTOOLS_PREFIX> parameters to this script"
+  echo "$CROSSTOOLS_INSTALLED_DIR"/"$CROSSTOOLS_PREFIX"/bin/"$CROSSTOOLS_PREFIX"-gcc does not exist or is not executable, check "<CT_INSTALLED_DIR> and <CT_PREFIX> parameters to this script"
   echo
   exit 1
 fi;
