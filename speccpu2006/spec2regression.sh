@@ -14,7 +14,7 @@ Usage: $0 [-n] [-s <SSH_PARAS>] [-r <SSH_REMOTE_DIR] -p <SPEC_INSTALLED_DIR> -b 
   -b SPEC_BUILD_DIR      (req unless -n) Specify the name of the SPEC_CPU2006 build directory (found in SPEC_INSTALLED_DIR/benchspec/CPU2006/*/build, e.g. build_base_CONFIG-nn.0000)
   -d TARGET_DIR          (req) Directory in which to copy the benchmarks, input/output files and run scripts (e.g. \$HOME/regression/arm/spec2006; will be created if necessary)
   -a FP_ARCH             (req) Floating point arch used, supported options: arm-softfp
-  -e ARCH_ENDIANESS      (opt) Endianness of the target platform ("little" or "big")
+  -e ARCH_ENDIANESS      (opt) Endianness of the target platform ("little" or "big", default: little)
 HELP
 exit 1
 }
@@ -45,7 +45,7 @@ SPEC_INSTALLED_DIR=
 SPEC_BUILD_DIR=
 TARGET_DIR=
 FP_ARCH=
-ARCH_ENDIANESS=
+ARCH_ENDIANESS=le
 
 while getopts ns:r:p:b:d:a:e:h\? opt; do
   case $opt in
