@@ -6,11 +6,12 @@ print_help_exit() {
 cat<<HELP
 This script installs SPEC_CPU2006, configures it for building with a particular toolchain and then builds it
 
-Usage: $0 [-n] [-k] [-f <SPEC_ARCHIVE>] [-j <SPEC_PAR_BUILD>] -d <SPEC_TARGET_DIR> -c <SPEC_CONFIG_NAME> -t <CT_INSTALLED_DIR> -p <CT_PREFIX>
+Usage: $0 [-n] [-k] [-f <SPEC_ARCHIVE>] [-j <SPEC_PAR_BUILD>] [-O <SPEC_OPT_FLAGS>] -d <SPEC_TARGET_DIR> -c <SPEC_CONFIG_NAME> -t <CT_INSTALLED_DIR> -p <CT_PREFIX>
   -n                     (opt) Do not unpack the SPEC_CPU2006 tbz install file (assume the unpacked version still exists in the current dir)
   -k                     (opt) Keep unpacked SPEC_CPU2006 install file
   -f SPEC_ARCHIVE        (opt) Specify the the SPEC_CPU2006 install file (default is CSL one under /afs)
   -j SPEC_PAR_BUILD      (opt) Specify the make -j factor for building the SPEC benchmarks (default: 2)
+  -O SPEC_OPT_FLAGS      (opt) Specify optimization flags to compile the benchmarks (default: -O2)
   -d SPEC_TARGET_DIR     (req) Specify the directory where SPEC_CPU2006 should be installed
   -c SPEC_CONFIG_NAME    (req) Specify the name of the SPEC_CPU2006 configuration name to generate (freely chooseable)
   -t CT_INSTALLED_DIR    (req) Specify the directory under which the crosstools have been installed (parameter passed to build.sh of Diablo binutils)
@@ -43,6 +44,7 @@ UNPACK_SPEC=y
 KEEP_UNPACKED_SPEC=n
 SPEC_ARCHIVE="/afs/elis/group/csl/perflab/benchmarks/SPEC_CPU2006v1.1.tar.bz2"
 SPEC_PARALLEL_BUILD_FACTOR=2
+SPEC_OPT_FLAGS=-O2
 
 
 SPEC_INSTALLDIR=
@@ -50,7 +52,7 @@ SPEC_CONFIG_NAME=
 CROSSTOOLS_INSTALLED_DIR=
 CROSSTOOLS_PREFIX=
 
-while getopts nkf:j:d:c:t:p:h\? opt; do
+while getopts nkf:j:O:d:c:t:p:h\? opt; do
   case $opt in
     n) UNPACK_SPEC=n
       ;;
@@ -59,6 +61,8 @@ while getopts nkf:j:d:c:t:p:h\? opt; do
     f) SPEC_ARCHIVE="$OPTARG"
       ;;
     j) SPEC_PARALLEL_BUILD_FACTOR="$OPTARG"
+      ;;
+    O) SPEC_OPT_FLAGS="$OPTARG"
       ;;
     d) SPEC_INSTALLDIR="$OPTARG"
       ;;
@@ -183,7 +187,7 @@ fi
 # create a config to build the benchmarks with patched toolchain
 echo Creating SPEC build configuration...
 cp config/Example-linux32-i386-gcc42.cfg config/"$SPEC_CONFIG_NAME".cfg
-sed -e "s?DIABLO_SPEC_CONFIG_NAME?$SPEC_CONFIG_NAME?g" -e "s?DIABLO_CROSSTOOLS_INSTALLED_DIR?$CROSSTOOLS_INSTALLED_DIR?g" -e "s?DIABLO_CROSSTOOLS_PREFIX?$CROSSTOOLS_PREFIX?g" -e "s?SPEC_PARALLEL_BUILD_FACTOR?$SPEC_PARALLEL_BUILD_FACTOR?g"  < "$PATCHES_DIR"/spec_config.patch | patch -p1
+sed -e "s?DIABLO_SPEC_CONFIG_NAME?$SPEC_CONFIG_NAME?g" -e "s?DIABLO_CROSSTOOLS_INSTALLED_DIR?$CROSSTOOLS_INSTALLED_DIR?g" -e "s?DIABLO_CROSSTOOLS_PREFIX?$CROSSTOOLS_PREFIX?g" -e "s?DIABLO_SPEC_OPTIMIZE_FLAGS?$SPEC_OPT_FLAGS?g" -e "s?SPEC_PARALLEL_BUILD_FACTOR?$SPEC_PARALLEL_BUILD_FACTOR?g"  < "$PATCHES_DIR"/spec_config.patch | patch -p1
 
 echo Building SPEC_CPU2006...
 # restore environment to default

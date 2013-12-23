@@ -1,5 +1,5 @@
 --- a/config/DIABLO_SPEC_CONFIG_NAME.cfg	2008-03-06 01:16:50.000000000 +0100
-+++ b/config/DIABLO_SPEC_CONFIG_NAME.cfg	2013-08-13 17:15:46.000000000 +0200
++++ b/config/DIABLO_SPEC_CONFIG_NAME.cfg	2013-12-23 14:01:19.000000000 +0100
 @@ -31,7 +31,7 @@
  
  ignore_errors = yes
@@ -24,7 +24,7 @@
  
  ## HW config
  hw_model     = Tyan Thunder KKQS Pro (S4882)
-@@ -85,7 +87,7 @@
+@@ -85,20 +87,20 @@
  sw_base_ptrsize = 32-bit
  sw_peak_ptrsize = 32-bit
  
@@ -33,6 +33,26 @@
  #####################################################################
  # Optimization
  #####################################################################
+ ## Base is low opt
+ default=base=default=default:
+ 
+-COPTIMIZE     = -O2
+-CXXOPTIMIZE  = -O2 
+-FOPTIMIZE    = -O2
+-
+-notes0100= C base flags: -O2
+-notes0110= C++ base flags: -O2
+-notes0120= Fortran base flags: -O2
++COPTIMIZE     = DIABLO_SPEC_OPTIMIZE_FLAGS
++CXXOPTIMIZE  = DIABLO_SPEC_OPTIMIZE_FLAGS
++FOPTIMIZE    = DIABLO_SPEC_OPTIMIZE_FLAGS
++
++notes0100= C base flags: DIABLO_SPEC_OPTIMIZE_FLAGS
++notes0110= C++ base flags: DIABLO_SPEC_OPTIMIZE_FLAGS
++notes0120= Fortran base flags: DIABLO_SPEC_OPTIMIZE_FLAGS
+ 
+ #####################################################################
+ # 32/64 bit Portability Flags - all
 @@ -112,15 +114,21 @@
  #####################################################################
  
