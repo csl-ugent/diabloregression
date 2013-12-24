@@ -121,6 +121,7 @@ if [ "x${SPEC_COPY_BENCHMARKS}" = xy ]; then
     exit 1
   fi
 fi
+SPEC_INSTALLED_DIR=`dir_make_and_resolve \"${SPEC_INSTALLED_DIR}\"`
 
 # create destination and get absolute path
 TARGET_DIR="`dir_make_and_resolve \"${TARGET_DIR}\"`"
