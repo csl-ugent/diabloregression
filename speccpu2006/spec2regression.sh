@@ -210,7 +210,7 @@ do
 # all files to copy (input files have been copied into the main directory by regression.py already)
      echo 'files=`ls -1 -d *|egrep -v "b\.out|diablo_log|runme.sh"`'
 # delete possible leftovers from a previous test
-     echo ssh "$SSH_PARAS" "'cd \"$SSH_REMOTE_DIR\"/$dir && rm -rf *'"
+     echo ssh "$SSH_PARAS" "'mkdir -p \"$SSH_REMOTE_DIR\"/$dir && cd \"$SSH_REMOTE_DIR\"/$dir && rm -rf *'"
 # copy all new files over
      echo 'tar cf - $files | ssh' "$SSH_PARAS" "'cd \"$SSH_REMOTE_DIR\"/$dir && tar xf -'"
 # extract actual testing commands and prefix them with the ssh command
