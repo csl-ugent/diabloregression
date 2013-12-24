@@ -199,4 +199,6 @@ source shrc
 echo "  Executing: runspec -a build -c $SPEC_CONFIG_NAME --size=test all >specbuild.log 2>&1"
 runspec -a build -c $SPEC_CONFIG_NAME --size=test all >specbuild.log 2>&1
 echo Done!
-
+echo
+echo "Now execute spec2regression.sh to create a directory layout and configuration scripts that can be used by the regression.py script (see README.txt for an example)"
+echo
