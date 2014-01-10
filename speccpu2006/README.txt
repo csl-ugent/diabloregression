@@ -24,15 +24,9 @@ the install.sh script aborts, everything should be fine.
 Building
 ========
 
-Once installed, you will probably want to build SPEC2006. The instructions on
-how to do this are printed at the end of the install.sh script's execution:
-
-  cd /home/jmaebe/private/setupspec2006/specinst
-  source shrc
-  runspec -a build -c armgcc436 --size=test all >specbuild.log 2>&1
-
-This will compile all the SPEC CPU2006 benchmarks using the selected toolchain
-in the "Install" step.
+Once installed, install.sh will also build SPEC2006. Should you want to
+rebuild it later, you can do so without reinstalling everything using the -r
+option of the install.sh script.
 
 Setup
 =====
@@ -51,3 +45,4 @@ will show a help screen. An example usage is shown below:
 
 Look at ../common/regression-main/README.txt for information on how to use the
 regression.py script.
+
