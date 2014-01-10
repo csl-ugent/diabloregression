@@ -143,6 +143,8 @@ if [ x"$ONLY_REBUILD" = xn ]; then
   if [ x"$UNPACK_SPEC" = xy ]; then
     echo "Unpacking SPEC CPU2006 (will take a while)"...
     tar xjf "$SPEC_ARCHIVE"
+# get read of read-only files (comes from a cdrom)
+    chmod -R u+w SPEC_CPU2006v1.1
   fi
 
 # install it (may fail while testing the tools)
