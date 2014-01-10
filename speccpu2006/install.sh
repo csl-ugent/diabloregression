@@ -7,6 +7,7 @@ cat<<HELP
 This script installs SPEC_CPU2006, configures it for building with a particular toolchain and then builds it
 
 Usage: $0 [-n] [-k] [-f <SPEC_ARCHIVE>] [-j <SPEC_PAR_BUILD>] [-O <SPEC_OPT_FLAGS>] -d <SPEC_TARGET_DIR> -c <SPEC_CONFIG_NAME> -t <CT_INSTALLED_DIR> -p <CT_PREFIX>
+  -r                     (opt) Only rebuild installed SPEC with new options, skip installation pass (-n, -k, -f parameters are unnecessary/ignored)
   -n                     (opt) Do not unpack the SPEC_CPU2006 tbz install file (assume the unpacked version still exists in the current dir)
   -k                     (opt) Keep unpacked SPEC_CPU2006 install file
   -f SPEC_ARCHIVE        (opt) Specify the the SPEC_CPU2006 install file (default is CSL one under /afs)
@@ -40,6 +41,7 @@ dir_make_and_resolve()
   echo "`pwd -P`" # output full, link-resolved path
 }
 
+ONLY_REBUILD=n
 UNPACK_SPEC=y
 KEEP_UNPACKED_SPEC=n
 SPEC_ARCHIVE="/afs/elis/group/csl/perflab/benchmarks/SPEC_CPU2006v1.1.tar.bz2"
@@ -52,8 +54,10 @@ SPEC_CONFIG_NAME=
 CROSSTOOLS_INSTALLED_DIR=
 CROSSTOOLS_PREFIX=
 
-while getopts nkf:j:O:d:c:t:p:h\? opt; do
+while getopts rnkf:j:O:d:c:t:p:h\? opt; do
   case $opt in
+    r) ONLY_REBUILD=y
+      ;;
     n) UNPACK_SPEC=n
       ;;
     k) KEEP_UNPACKED_SPEC=y
@@ -86,21 +90,23 @@ checkempty "$SPEC_CONFIG_NAME" -c
 checkempty "$CROSSTOOLS_INSTALLED_DIR" -t
 checkempty "$CROSSTOOLS_PREFIX" -p
 
+if [ x$ONLY_REBUILD = xn ]; then
 # check arguments
-case x"$UNPACK_SPEC" in
-  xy) if [ ! -f "$SPEC_ARCHIVE" ]; then
-        echo "Error: cannot find SPEC_ARCHIVE $SPEC_ARCHIVE"
-        echo
-        exit 1
-      fi
-    ;;
-  *) if [ ! -d "SPEC_CPU2006v1.1" ]; then
-       echo Error: cannot find unpacked SPEC_CPU2006v1.1 directory
-       echo
-       exit 1
-     fi
-    ;;
-esac
+  case x"$UNPACK_SPEC" in
+    xy) if [ ! -f "$SPEC_ARCHIVE" ]; then
+          echo "Error: cannot find SPEC_ARCHIVE $SPEC_ARCHIVE"
+          echo
+          exit 1
+        fi
+      ;;
+    *) if [ ! -d "SPEC_CPU2006v1.1" ]; then
+         echo Error: cannot find unpacked SPEC_CPU2006v1.1 directory
+         echo
+         exit 1
+       fi
+      ;;
+  esac
+fi
 
 # check if we can find the patches we need
 PATCHES_DIR="$STARTUP_DIR"/patches
@@ -124,66 +130,77 @@ fi
 # extract architecture from crosstools prefix
 SPEC_ARCH=`echo $CROSSTOOLS_PREFIX| cut -d'-' -f 1`
 
+if [ x"$ONLY_REBUILD" = xn ]; then
 # create the destination directory and resolve it to an absolute path
-SPEC_INSTALLDIR="`dir_make_and_resolve \"${SPEC_INSTALLDIR}\"`"
-if [ $? -ne 0 ]; then
-  echo "Unable to create destination directory $SPEC_INSTALLDIR..."
-  exit 1
-fi
+  SPEC_INSTALLDIR="`dir_make_and_resolve \"${SPEC_INSTALLDIR}\"`"
+  if [ $? -ne 0 ]; then
+    echo "Error: Unable to create destination directory $SPEC_INSTALLDIR..."
+    echo
+    exit 1
+  fi
 
 # unpack SPEC2006 in current directory
-if [ x"$UNPACK_SPEC" = xy ]; then
-  echo "Unpacking SPEC CPU2006 (will take a while)"...
-  tar xjf "$SPEC_ARCHIVE"
-fi
+  if [ x"$UNPACK_SPEC" = xy ]; then
+    echo "Unpacking SPEC CPU2006 (will take a while)"...
+    tar xjf "$SPEC_ARCHIVE"
+  fi
 
 # install it (may fail while testing the tools)
-echo "Installing SPEC CPU2006 (specinstall.log) ..."
-cd SPEC_CPU2006v1.1
-./install.sh -f -d "$SPEC_INSTALLDIR" > "$STARTUP_DIR"/specinstall.log 2>&1
+  echo "Installing SPEC CPU2006 (specinstall.log) ..."
+  cd SPEC_CPU2006v1.1
+  ./install.sh -f -d "$SPEC_INSTALLDIR" > "$STARTUP_DIR"/specinstall.log 2>&1
 
-echo "Compiling SPEC CPU2006 tools (spectools.log) ..."
+  echo "Compiling SPEC CPU2006 tools (spectools.log) ..."
 # compile tools
-cd "$SPEC_INSTALLDIR"
+  cd "$SPEC_INSTALLDIR"
 
-mkdir tools
-cp -R "$STARTUP_DIR"/SPEC_CPU2006v1.1/tools/src tools
-cd tools/src
+  mkdir tools
+  cp -R "$STARTUP_DIR"/SPEC_CPU2006v1.1/tools/src tools
+  cd tools/src
 # some files are read-only, yet have to be overwritten
-chmod -R u+w .
+  chmod -R u+w .
 # patch the buildtools script so it doesn't complain if some perl tests fail (it's harmless)
-patch -p1 < "$PATCHES_DIR"/buildtools-ignore-harmless-specperl-error.patch >/dev/null
+  patch -p1 < "$PATCHES_DIR"/buildtools-ignore-harmless-specperl-error.patch >/dev/null
 # patch md5sum so it doesn't redeclare getline/getdelim when unnecessary (causing potential useless conflicts with system headers)
-patch -p1 < "$PATCHES_DIR"/buildtools-md5sum.patch >/dev/null
+  patch -p1 < "$PATCHES_DIR"/buildtools-md5sum.patch >/dev/null
 # patch Perl makefile to link against libm for miniperl
-patch -p1 < "$PATCHES_DIR"/buildtools-perl.patch >/dev/null
+  patch -p1 < "$PATCHES_DIR"/buildtools-perl.patch >/dev/null
 # add file to tell perl that it has to link against libm for regular perl
-cat > perl-5.8.8/ext.libs << PERLLIBS
+  cat > perl-5.8.8/ext.libs << PERLLIBS
 -lm
 PERLLIBS
 # prevent testing of Zlib
-touch Compress-Zlib-1.34/spec_do_no_tests
+  touch Compress-Zlib-1.34/spec_do_no_tests
 
 # build the SPEC tools
-export BZIP2CFLAGS=-fPIC
-./buildtools > "$STARTUP_DIR"/spectools.log 2>&1
-if [ $? -ne 0 ]; then
-  echo  Building the SPEC CPU2006 tools failed, see spectools.log for details
-  exit 1
-fi
-cd ../..
+  export BZIP2CFLAGS=-fPIC
+  ./buildtools > "$STARTUP_DIR"/spectools.log 2>&1
+  if [ $? -ne 0 ]; then
+    echo  Building the SPEC CPU2006 tools failed, see spectools.log for details
+    exit 1
+  fi
+  cd ../..
 # the SPEC tools are now (hopefully) built
-if [ ! -f tools/output/bin/a2p ]; then
-  echo  Building the SPEC CPU2006 tools failed, see spectools.log for details
-  exit 1
-fi
+  if [ ! -f tools/output/bin/a2p ]; then
+    echo  Building the SPEC CPU2006 tools failed, see spectools.log for details
+    exit 1
+  fi
 
 # remove the unpacked installer files if not prevented
-if [ x"$KEEP_UNPACKED_SPEC" = xn ]; then
-  echo Removing unpacked SPEC_CPU2006 installer dir...
-  rm -rf "$STARTUP_DIR"/SPEC_CPU2006v1.1
+  if [ x"$KEEP_UNPACKED_SPEC" = xn ]; then
+    echo Removing unpacked SPEC_CPU2006 installer dir...
+    rm -rf "$STARTUP_DIR"/SPEC_CPU2006v1.1
+  fi
+else
+  # REBUILD_ONLY=y
+  if [ ! -f "$SPEC_INSTALLDIR"/tools/output/bin/perl ]; then
+    echo "Error: $SPEC_INSTALLDIR does not appear to contain a previously installed SPEC_CPU2006"
+    echo
+    exit 1
+  fi
 fi
 
+cd "$SPEC_INSTALLDIR"
 # create a config to build the benchmarks with patched toolchain
 echo Creating SPEC build configuration...
 cp config/Example-linux32-i386-gcc42.cfg config/"$SPEC_CONFIG_NAME".cfg
