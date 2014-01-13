@@ -15,6 +15,7 @@ Usage: $0 [-n] [-s <SSH_PARAS>] [-r <SSH_REMOTE_DIR] -p <SPEC_INSTALLED_DIR> -b 
   -d TARGET_DIR          (req) Directory in which to copy the benchmarks, input/output files and run scripts (e.g. \$HOME/regression/arm/spec2006; will be created if necessary)
   -a FP_ARCH             (req) Floating point arch used, supported options: arm-softfp
   -e ARCH_ENDIANESS      (opt) Endianness of the target platform ("little" or "big", default: little)
+  -w WRAPPER             (opt) Wrap execution of remote commands with this wrapper program
 HELP
 exit 1
 }
@@ -46,8 +47,9 @@ SPEC_BUILD_DIR=
 TARGET_DIR=
 FP_ARCH=
 ARCH_ENDIANESS=le
+WRAPPER=
 
-while getopts ns:r:p:b:d:a:e:h\? opt; do
+while getopts ns:r:p:b:d:a:e:w:h\? opt; do
   case $opt in
     n) SPEC_COPY_BENCHMARKS=n
       ;;
@@ -71,6 +73,8 @@ while getopts ns:r:p:b:d:a:e:h\? opt; do
          *) echo "Invalid -e value, must be little or big"
            ;;
        esac
+      ;;
+    w) WRAPPER="$OPTARG"
       ;;
     h | \?) print_help_exit
       ;;
@@ -213,7 +217,7 @@ do
 # copy all new files over
      echo 'tar cf - $files | ssh' "$SSH_PARAS" "'cd \"$SSH_REMOTE_DIR\"/$dir && tar xf -'"
 # extract actual testing commands and prefix them with the ssh command
-     tail -n +2 "$file" | sed -e "s!.*!ssh $SSH_PARAS \"cd '$SSH_REMOTE_DIR'/$dir \&\& &\"!"
+     tail -n +2 "$file" | sed -e "s!.*!ssh $SSH_PARAS \"cd '$SSH_REMOTE_DIR'/$dir \&\& $WRAPPER &\"!"
 # get the names of the output files that should be checked
      cd `dirname "$file"`/reference
 # grep returns an error if no output
