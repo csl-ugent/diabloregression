@@ -1,0 +1,20 @@
+The scripts and files in this directory can be used to test the NEON disassembler/assembler.
+
+HOW TO USE
+1. Do a checkout of the GCC and/or Valgrind source code.
+2. Go to the GCC and/or Valgrind subdirectory and execute the 'generate.sh' script.
+    ./generate.sh <path to GCC/Valgrind sources>
+   The script will import the testcases from the source directory and modify them if appropriate.
+3. In this directory, execute the 'build.sh' script. This can take a long time.
+    ./build.sh
+      Arguments   - 'gcc' or 'valgrind', depending on the tests you want to execute
+                  - path to the Diablo binary
+                  - path to the Diablo source code
+                  - path to the Diablo toolchain (binutils/gcc)
+4. In this directory, execute the 'check.sh' script to extract warnings and fatal errors from the
+   Diablo output and mismatch messages from the Diablo-objdump comparison.
+
+DIRECTORY STRUCTURE
+common/   Contains the common scripts
+gcc/      Contains a script to import the tests from a GCC SVN checkout
+valgrind/ Contains a script to import the tests from a Valgrind SVN checkout

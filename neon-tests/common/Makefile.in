@@ -1,0 +1,30 @@
+# Call like this:
+#  make [target] SCRIPTS=[path to scripts] DIABLO=[path to diablo binary] DIABLOSOURCE=[path to Diablo source code] TOOLCHAIN=[path to toolchain]
+
+TOOLCHAINPREFIX="${TOOLCHAIN}/arm-diablo-linux-gnueabi/bin/arm-diablo-linux-gnueabi-"
+CC="${TOOLCHAINPREFIX}gcc"
+OBJDUMP="${TOOLCHAINPREFIX}objdump"
+DIABLOLD="${DIABLOSOURCE}/object/data/ELF-ARM-BINUTILS_LD.ld"
+FLOAT=softfp
+DIABLOFLAGS=-Z -F -T "${DIABLOLD}"
+
+all:
+	${CC} ${EXTRA_CFLAGS} -Wall -static -mcpu=cortex-a8 -mfpu=neon -mfloat-abi=${FLOAT} -marm --save-temps ${PROG}.c -o ${PROG} -Wl,-Map,${PROG}.map,--no-merge-exidx-entries
+
+dump:
+	${OBJDUMP} -M reg-names-raw -d ${PROG} > objdump.txt
+	"${SCRIPTS}/parse_objdump.sh" ${PWD}/objdump.txt
+
+test:
+	("${DIABLO}" ${DIABLOFLAGS} ${PROG} &> diablo-output.txt) || :
+	cat diablo-output.txt | grep "disassemble\|trace" > output.txt
+	cat diablo-output.txt | grep "trace" > trace.txt
+
+debug:
+	valgrind "${DIABLO}" ${DIABLOFLAGS} ${PROG}
+
+compare:
+	"${SCRIPTS}/compare.pl" "${PWD}/trace.txt" "${PWD}/objdump.txt" 1
+
+clean:
+	(rm -f *.list *.i *.s *.o *.map *.out *.txt ${PROG}) || :
