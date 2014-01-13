@@ -101,9 +101,21 @@ if [ ! -f "$HELPER_DATA_DIR"/401.bzip2/runme.sh.org ]; then
 fi
 
 # check if the specified fp architecture is supported
-FP_DATA_DIR="outputoverrides"/"$FP_ARCH"
+OVERRIDESDIR="$STARTUP_DIR"/outputoverrides
+if [ ! -d "$OVERRIDESDIR" ]; then
+  OVERRIDESDIR="`dirname \"$0\"`"/outputoverrides
+  if [ ! -d "$OVERRIDESDIR" ]; then
+    echo Cannot fined \"outputoverrides\" in the current directory not in the directory containing this script
+    echo
+    exit 1
+  fi
+fi
+FP_DATA_DIR="$OVERRIDESDIR"/"$FP_ARCH"
 if [ ! -d "$FP_DATA_DIR" ]; then
-  echo $FP_ARCH is an unsupported architecture, $FP_DATA_DIR not founod
+  echo $FP_ARCH is an unsupported architecture, $FP_DATA_DIR not found
+  echo Found architecural overrides:
+  cd "$OVERRIDESDIR"
+  ls -1 | sed -e 's/^/  /'
   exit 1
 fi
 
