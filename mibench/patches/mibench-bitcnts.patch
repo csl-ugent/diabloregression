@@ -1,0 +1,17 @@
+--- mibench/automotive/bitcount/bitcnts.c	2001-10-17 04:56:51.000000000 +0200
++++ mibench/automotive/bitcount/bitcnts.c	2014-01-13 13:55:40.000000000 +0100
+@@ -70,10 +70,11 @@
+ 	 cmaxix = i;
+     }
+     
+-    printf("%-38s> Time: %7.3f sec.; Bits: %ld\n", text[i], ct, n);
++/*    printf("%-38s> Time: %7.3f sec.; Bits: %ld\n", text[i], ct, n); */
++    printf("%-38s> Time: N/A sec.; Bits: %ld\n", text[i], n);
+   }
+-  printf("\nBest  > %s\n", text[cminix]);
+-  printf("Worst > %s\n", text[cmaxix]);
++/*  printf("\nBest  > %s\n", text[cminix]); */
++/*  printf("Worst > %s\n", text[cmaxix]); */
+   return 0;
+ }
+ 

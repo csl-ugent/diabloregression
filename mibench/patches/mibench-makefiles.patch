@@ -1,0 +1,345 @@
+--- mibench/automotive/basicmath/Makefile.ORG	2013-12-23 14:43:37.000000000 +0100
++++ mibench/automotive/basicmath/Makefile	2013-12-23 15:55:42.000000000 +0100
+@@ -4,9 +4,9 @@
+ all: basicmath_small basicmath_large
+ 
+ basicmath_small: ${FILE1} Makefile
+-	gcc -static -O3 ${FILE1} -o basicmath_small -lm
++	CT_INSTALLED_DIR/CT_PREFIX/bin/CT_PREFIX-gcc -static MIBENCH_OPT_FLAGS ${FILE1} -o basicmath_small -lm -save-temps -Wl,-Map,$@.map
+ basicmath_large: ${FILE2} Makefile
+-	gcc -static -O3 ${FILE2} -o basicmath_large -lm
++	CT_INSTALLED_DIR/CT_PREFIX/bin/CT_PREFIX-gcc -static MIBENCH_OPT_FLAGS ${FILE1} -o basicmath_large -lm -save-temps -Wl,-Map,$@.map
+ 
+ clean:
+-	rm -rf basicmath_small basicmath_large output*
++	rm -rf basicmath_small basicmath_large *.i *.s *.o *.map output*
+--- mibench/automotive/bitcount/Makefile.ORG	2013-12-23 14:51:32.000000000 +0100
++++ mibench/automotive/bitcount/Makefile	2013-12-23 15:55:47.000000000 +0100
+@@ -1,7 +1,7 @@
+ FILE = bitcnt_1.c bitcnt_2.c bitcnt_3.c bitcnt_4.c bitcnts.c bitfiles.c bitstrng.c bstr_i.c 
+ 
+ bitcnts: ${FILE} Makefile
+-	gcc -static ${FILE} -O3 -o bitcnts
++	CT_INSTALLED_DIR/CT_PREFIX/bin/CT_PREFIX-gcc -static ${FILE} MIBENCH_OPT_FLAGS -o bitcnts -save-temps -Wl,-Map,$@.map
+ 
+ clean:
+-	rm -rf bitcnts output*
++	rm -rf bitcnts output* *.i *.s *.o *.map
+--- mibench/automotive/qsort/Makefile.ORG	2013-12-23 14:51:56.000000000 +0100
++++ mibench/automotive/qsort/Makefile	2013-12-23 15:55:55.000000000 +0100
+@@ -4,9 +4,9 @@
+ all: qsort_small qsort_large
+ 
+ qsort_small: qsort_small.c Makefile
+-	gcc -static qsort_small.c -O3 -o qsort_small -lm
++	CT_INSTALLED_DIR/CT_PREFIX/bin/CT_PREFIX-gcc -static qsort_small.c MIBENCH_OPT_FLAGS -o qsort_small -lm -save-temps -Wl,-Map,$@.map
+ qsort_large: qsort_large.c Makefile
+-	gcc -static qsort_large.c -O3 -o qsort_large -lm
++	CT_INSTALLED_DIR/CT_PREFIX/bin/CT_PREFIX-gcc -static qsort_large.c MIBENCH_OPT_FLAGS -o qsort_large -lm -save-temps -Wl,-Map,$@.map
+ 
+ clean:
+-	rm -rf qsort_small qsort_large output*
++	rm -rf qsort_small qsort_large *.i *.s *.o *.map output*
+--- mibench/automotive/susan/Makefile.ORG	2013-12-23 14:51:08.000000000 +0100
++++ mibench/automotive/susan/Makefile	2013-12-23 15:55:59.000000000 +0100
+@@ -1,5 +1,5 @@
+ susan: susan.c Makefile
+-	gcc -static -O4 -o susan susan.c -lm 
++	CT_INSTALLED_DIR/CT_PREFIX/bin/CT_PREFIX-gcc -static MIBENCH_OPT_FLAGS -o susan susan.c -lm -save-temps -Wl,-Map,$@.map
+ 
+ clean:
+-	rm -rf susan output*
++	rm -rf susan *.i *.s *.o *.map OUTPut*
+--- mibench/consumer/jpeg/jpeg-6a/Makefile.ORG	2014-01-06 11:33:51.000000000 +0100
++++ mibench/consumer/jpeg/jpeg-6a/Makefile	2014-01-03 15:15:30.000000000 +0100
+@@ -20,17 +20,17 @@
+ mandir = $(prefix)/man/man$(manext)
+ 
+ # The name of your C compiler:
+-CC= gcc
++CC= CT_INSTALLED_DIR/CT_PREFIX/bin/CT_PREFIX-gcc
+ 
+ # You may need to adjust these cc options:
+-CFLAGS= -O  -I$(srcdir)
++CFLAGS= MIBENCH_OPT_FLAGS -I$(srcdir)
+ # Generally, we recommend defining any configuration symbols in jconfig.h,
+ # NOT via -D switches here.
+ # However, any special defines for ansi2knr.c may be included here:
+ ANSI2KNRFLAGS= 
+ 
+ # Link-time cc options:
+-LDFLAGS= 
++LDFLAGS= -static -Wl,-Map,$@.map
+ 
+ # To link any special libraries, add the necessary -l commands here.
+ LDLIBS= 
+@@ -49,9 +49,9 @@
+ # file rename command
+ MV= mv
+ # library (.a) file creation command
+-AR= ar rc
++AR= CT_INSTALLED_DIR/CT_PREFIX/bin/CT_PREFIX-ar rc
+ # second step in .a creation (use "touch" if not needed)
+-AR2= ranlib
++AR2= CT_INSTALLED_DIR/CT_PREFIX/bin/CT_PREFIX-ranlib
+ # installation program
+ INSTALL= /usr/bin/install -c
+ INSTALL_PROGRAM= ${INSTALL}
+@@ -175,7 +175,7 @@
+ 	$(INSTALL_DATA) $(srcdir)/jerror.h $(includedir)/jerror.h
+ 
+ clean:
+-	$(RM) *.o cjpeg djpeg jpegtran libjpeg.a rdjpgcom wrjpgcom
++	$(RM) *.o cjpeg djpeg jpegtran libjpeg.a rdjpgcom wrjpgcom *.map
+ 	$(RM) ansi2knr core testout* config.log config.status
+ 
+ distribute:
+--- mibench/consumer/lame/lame3.70/Makefile.ORG	2014-01-03 15:04:52.000000000 +0100
++++ mibench/consumer/lame/lame3.70/Makefile	2014-01-03 15:15:40.000000000 +0100
+@@ -11,8 +11,8 @@
+ 
+ # defaults:
+ PGM = lame
+-CC = gcc
+-CC_OPTS =  -O
++CC = CT_INSTALLED_DIR/CT_PREFIX/bin/CT_PREFIX-gcc
++CC_OPTS =  MIBENCH_OPT_FLAGS
+ GTK = 
+ GTKLIBS = 
+ SNDLIB = -DLAMESNDFILE
+@@ -73,12 +73,12 @@
+ #   GTK = -DHAVEGTK `gtk-config --cflags`
+ #   GTKLIBS = `gtk-config --libs` 
+ # Comment out next 2 lines if you want to remove VBR histogram capability
+-   BRHIST_SWITCH = -DBRHIST
+-   LIBTERMCAP = -lncurses
++#   BRHIST_SWITCH = -DBRHIST
++#   LIBTERMCAP = -lncurses
+ 
+ 
+ # suggested for gcc-2.7.x
+-   CC_OPTS =  -O3 -fomit-frame-pointer -funroll-loops -ffast-math  -finline-functions -Wall
++#   CC_OPTS =  -O3 -fomit-frame-pointer -funroll-loops -ffast-math  -finline-functions -Wall
+ #  CC_OPTS =  -O9 -fomit-frame-pointer -fno-strength-reduce -mpentiumpro -ffast-math -finline-functions -funroll-loops -Wall -malign-double -g -march=pentiumpro -mfancy-math-387 -pipe 
+ 
+ #  for debugging:
+@@ -233,6 +233,7 @@
+ # gcc 2.8+ as of 10/99.  
+ 
+ CC_SWITCHES = -DNDEBUG -D__NO_MATH_INLINES $(CC_OPTS) $(SNDLIB) $(GTK) $(BRHIST_SWITCH)
++LD_SWITCHES = $(CC_SWITCHES) -static -Wl,-Map,$@.map -save-temps
+ c_sources = \
+         brhist.c \
+ 	formatBitstream.c \
+@@ -281,22 +282,22 @@
+ #	$(CC) -o $(PGM)  main.o $(OBJ) $(LIBS) $(CPP_OPTS) $(LIBSNDFILE) $(GTKLIBS) $(LIBTERMCAP)
+ 
+ $(PGM):	main.o libmp3lame.a 
+-	$(CC) -o $(PGM)  main.o -L. -lmp3lame $(LIBS) $(LIBSNDFILE) $(GTKLIBS) $(LIBTERMCAP)
++	$(CC) -o $(PGM)  main.o -L. -lmp3lame $(LIBS) $(LIBSNDFILE) $(GTKLIBS) $(LIBTERMCAP) $(LD_SWITCHES)
+ 
+ mp3x:	mp3x.o libmp3lame.a
+-	$(CC) -o mp3x mp3x.o  $(OBJ) $(LIBS) $(LIBSNDFILE) $(GTKLIBS) $(LIBTERMCAP)
++	$(CC) -o mp3x mp3x.o  $(OBJ) $(LIBS) $(LIBSNDFILE) $(GTKLIBS) $(LIBTERMCAP) $(LD_SWITCHES)
+ 
+ mp3rtp:	rtp.o mp3rtp.o libmp3lame.a
+-	$(CC) -o mp3rtp mp3rtp.o rtp.o   $(OBJ) $(LIBS) $(LIBSNDFILE) $(GTKLIBS) $(LIBTERMCAP)
++	$(CC) -o mp3rtp mp3rtp.o rtp.o   $(OBJ) $(LIBS) $(LIBSNDFILE) $(GTKLIBS) $(LIBTERMCAP) $(LD_SWITCHES)
+ 
+ libmp3lame.a:  $(OBJ) Makefile
+ #	cd libmp3lame
+ #	make libmp3lame
+-	ar cr libmp3lame.a  $(OBJ) 
++	CT_INSTALLED_DIR/CT_PREFIX/bin/CT_PREFIX-ar cr libmp3lame.a  $(OBJ) 
+ 
+ clean:
+ 	-$(RM) $(OBJ) $(DEP) $(PGM) main.o rtp.o mp3rtp mp3rtp.o \
+-         mp3x.o mp3x libmp3lame.a 
++         mp3x.o mp3x libmp3lame.a  *.map
+ 
+ 
+ tags: TAGS
+--- mibench/network/dijkstra/Makefile.ORG	2014-01-03 15:11:00.000000000 +0100
++++ mibench/network/dijkstra/Makefile	2014-01-03 15:12:09.000000000 +0100
+@@ -1,10 +1,10 @@
+ all:  dijkstra_large dijkstra_small
+ 
+ dijkstra_large: dijkstra_large.c Makefile
+-	gcc -static dijkstra_large.c -O3 -o dijkstra_large
++	CT_INSTALLED_DIR/CT_PREFIX/bin/CT_PREFIX-gcc -static dijkstra_large.c MIBENCH_OPT_FLAGS -o dijkstra_large -Wl,-Map,$@.map -save-temps
+ 
+ dijkstra_small: dijkstra_small.c Makefile
+-	gcc -static dijkstra_small.c -O3 -o dijkstra_small 
++	CT_INSTALLED_DIR/CT_PREFIX/bin/CT_PREFIX-gcc -static dijkstra_small.c MIBENCH_OPT_FLAGS -o dijkstra_small -Wl,-Map,$@.map -save-temps
+ 
+ clean:
+-	rm -rf dijkstra_large dijkstra_small output*
++	rm -rf dijkstra_large dijkstra_small output* *.map *.o *.i *.s
+--- mibench/network/patricia/Makefile.ORG	2014-01-03 15:16:10.000000000 +0100
++++ mibench/network/patricia/Makefile	2014-01-03 15:17:08.000000000 +0100
+@@ -1,5 +1,5 @@
+ patricia: patricia.c patricia_test.c
+-	gcc -static patricia.c patricia_test.c -O3 -o patricia
++	CT_INSTALLED_DIR/CT_PREFIX/bin/CT_PREFIX-gcc -static patricia.c patricia_test.c MIBENCH_OPT_FLAGS -o patricia -Wl,-Map,$@.map -save-temps
+ 
+ clean:
+-	rm -rf patricia output*
++	rm -rf patricia output* *.o *.s *.i *.map
+--- mibench/office/stringsearch/Makefile.ORG	2014-01-03 15:17:42.000000000 +0100
++++ mibench/office/stringsearch/Makefile	2014-01-03 15:18:45.000000000 +0100
+@@ -4,10 +4,10 @@
+ all: search_small search_large
+ 
+ search_small: ${FILE1} Makefile
+-	gcc -static ${FILE1} -O3 -o search_small
++	CT_INSTALLED_DIR/CT_PREFIX/bin/CT_PREFIX-gcc -static ${FILE1} MIBENCH_OPT_FLAGS -o search_small -Wl,-Map,$@.map -save-temps
+ 
+ search_large: ${FILE2} Makefile
+-	gcc -static ${FILE2} -O3 -o search_large
++	CT_INSTALLED_DIR/CT_PREFIX/bin/CT_PREFIX-gcc -static ${FILE2} MIBENCH_OPT_FLAGS -o search_large -Wl,-Map,$@.map -save-temps
+ 
+ clean:
+-	rm -rf search_small search_large output*
++	rm -rf search_small search_large output* *.map *.o *.i *.s
+--- mibench/security/sha/Makefile.ORG	2014-01-03 15:20:40.000000000 +0100
++++ mibench/security/sha/Makefile	2014-01-03 15:54:56.000000000 +0100
+@@ -3,12 +3,11 @@
+ # To make smaller object code, but run a little slower, don't use UNROLL_LOOPS.
+ # To use NIST's modified SHA of 7/11/94, define USE_MODIFIED_SHA
+ 
+-CC = gcc
+-CFLAGS = -O3 -Wall
++CC = CT_INSTALLED_DIR/CT_PREFIX/bin/CT_PREFIX-gcc
++CFLAGS =  MIBENCH_OPT_FLAGS -Wl,-Map,$@.map -save-temps -Wall SHA_LITTLE_ENDIAN_DEFINE -static
+ 
+ sha:	sha_driver.o sha.o
+-	$(CC) -o $@ sha_driver.o sha.o
+-	strip $@
++	$(CC) -o $@ $(CFLAGS) sha_driver.o sha.o 
+ 
+ clean:
+-	rm -rf *.o sha output*
++	rm -rf *.o sha output* *.map *.o *.i *.s
+--- mibench/security/rijndael/Makefile.ORG	2014-01-03 15:19:42.000000000 +0100
++++ mibench/security/rijndael/Makefile	2014-01-03 15:20:19.000000000 +0100
+@@ -1,5 +1,5 @@
+ rijndael: aes.c aes.h aestab.h aesxam.c Makefile
+-	gcc -static -O3 -o rijndael aes.c aesxam.c
++	CT_INSTALLED_DIR/CT_PREFIX/bin/CT_PREFIX-gcc -static MIBENCH_OPT_FLAGS -o rijndael aes.c aesxam.c  -Wl,-Map,$@.map -save-temps
+ 
+ clean:
+-	rm -rf rijndael output*
++	rm -rf rijndael output* *.map *.o *.i *.s
+--- mibench/telecomm/CRC32/Makefile.ORG	2014-01-03 16:24:03.000000000 +0100
++++ mibench/telecomm/CRC32/Makefile	2014-01-03 16:25:06.000000000 +0100
+@@ -1,5 +1,5 @@
+ crc: crc_32.c Makefile
+-	gcc -static crc_32.c -O3 -o crc 
++	CT_INSTALLED_DIR/CT_PREFIX/bin/CT_PREFIX-gcc -static crc_32.c -o crc MIBENCH_OPT_FLAGS -Wl,-Map,$@.map -save-temps
+ 
+ clean:
+-	rm -rf crc output*
++	rm -rf crc output* *.map *.o *.i *.s
+--- mibench/telecomm/FFT/Makefile.ORG	2014-01-03 16:25:37.000000000 +0100
++++ mibench/telecomm/FFT/Makefile	2014-01-03 16:29:17.000000000 +0100
+@@ -1,15 +1,15 @@
+ OBJ = main.o fftmisc.o  fourierf.o
+ FILE = main.c fftmisc.c  fourierf.c
+-CFLAGS = -static -O3 -g
++CFLAGS = -static MIBENCH_OPT_FLAGS
+ 
+ fft: ${OBJ} Makefile
+-	gcc  ${CFLAGS} ${OBJ} -o fft -lm
++	CT_INSTALLED_DIR/CT_PREFIX/bin/CT_PREFIX-gcc  ${CFLAGS} ${OBJ} -o fft -lm -Wl,-Map,$@.map -save-temps
+ fftmisc.o: fftmisc.c
+-	gcc ${CFLAGS} -c fftmisc.c
++	CT_INSTALLED_DIR/CT_PREFIX/bin/CT_PREFIX-gcc ${CFLAGS} -c fftmisc.c
+ fourierf.o: fourierf.c
+-	gcc ${CFLAGS} -c fourierf.c
++	CT_INSTALLED_DIR/CT_PREFIX/bin/CT_PREFIX-gcc ${CFLAGS} -c fourierf.c
+ main.o: main.c
+-	gcc ${CFLAGS} -c main.c
++	CT_INSTALLED_DIR/CT_PREFIX/bin/CT_PREFIX-gcc ${CFLAGS} -c main.c
+ 
+ clean:
+-	rm -rf *.o fft output*
++	rm -rf *.o fft output* *.map
+--- mibench/telecomm/adpcm/src/Makefile.ORG	2014-01-03 16:15:29.000000000 +0100
++++ mibench/telecomm/adpcm/src/Makefile	2014-01-03 16:19:44.000000000 +0100
+@@ -11,13 +11,13 @@
+ # Also, on Sun machines, in order to use the SPIXTOOLS and SHADE,
+ # uncomment this option: -static.
+ #
+-CC = gcc
+-LFLAGS = -mv8
+-LFLAGS = $(LFLAGS) -static
++CC = CT_INSTALLED_DIR/CT_PREFIX/bin/CT_PREFIX-gcc
++LFLAGS = 
++LFLAGS = -save-temps -static -Wl,-Map,$@.map
+ #
+ # End of addition
+ ######################################################################
+-CFLAGS = -static -O3
++CFLAGS = MIBENCH_OPT_FLAGS
+ 
+ # May need this on a sun:
+ # CFLAGS=-O -I/usr/demo/SOUND
+@@ -35,25 +35,25 @@
+ adpcm.o: adpcm.h
+ 
+ suncaudio: suncaudio.o adpcm.o
+-	$(CC) adpcm.o suncaudio.o -o suncaudio -L/usr/demo/SOUND -laudio
++	$(CC) adpcm.o suncaudio.o -o suncaudio -L/usr/demo/SOUND -laudio $(LFLAGS)
+ 
+ sundaudio: suncaudio
+ 	cp suncaudio sundaudio
+ 
+ sgicaudio: sgicaudio.o adpcm.o
+-	$(CC) sgicaudio.o adpcm.o -o sgicaudio -laudiofile -lm
++	$(CC) sgicaudio.o adpcm.o -o sgicaudio -laudiofile -lm $(LFLAGS)
+ 
+ sgidaudio: sgidaudio.o adpcm.o
+-	$(CC) sgidaudio.o adpcm.o -o sgidaudio -laudiofile -lm
++	$(CC) sgidaudio.o adpcm.o -o sgidaudio -laudiofile -lm $(LFLAGS)
+ 
+ rawcaudio: rawcaudio.o adpcm.o
+-	$(CC) $(CFLAGS) rawcaudio.o adpcm.o -o rawcaudio
++	$(CC) $(CFLAGS) rawcaudio.o adpcm.o -o rawcaudio $(LFLAGS)
+ 
+ rawdaudio: rawdaudio.o adpcm.o
+-	$(CC) $(CFLAGS) rawdaudio.o adpcm.o -o rawdaudio
++	$(CC) $(CFLAGS) rawdaudio.o adpcm.o -o rawdaudio $(LFLAGS)
+ 
+ timing: timing.o adpcm.o
+-	$(CC) $(CFLAGS) timing.o adpcm.o -o timing
++	$(CC) $(CFLAGS) timing.o adpcm.o -o timing $(LFLAGS)
+ 
+ adpcm.shar: $(ALLSRC)
+ 	shar $(ALLSRC) > adpcm.shar
+--- mibench/telecomm/gsm/Makefile.ORG	2014-01-03 16:29:44.000000000 +0100
++++ mibench/telecomm/gsm/Makefile	2014-01-06 16:20:32.000000000 +0100
+@@ -32,12 +32,13 @@
+ # CC		= /usr/lang/acc
+ # CCFLAGS 	= -c -O
+ 
+-CC		= gcc -ansi -pedantic -static
++CC		= CT_INSTALLED_DIR/CT_PREFIX/bin/CT_PREFIX-gcc -ansi -pedantic -static
+ # ARM gcc doesn't like the -O1 here...
+ #CCFLAGS 	= -c -O1 -DSTUPID_COMPILER -DNeedFunctionPrototypes=1
+-CCFLAGS 	= -c -O3 -DSTUPID_COMPILER -DNeedFunctionPrototypes=1
++CCFLAGS 	= -c -DSTUPID_COMPILER -DNeedFunctionPrototypes=1 MIBENCH_OPT_FLAGS
+ 
+ LD 		= $(CC)
++LDFLAGS         = -static -Wl,-Map,$@.map -save-temps MIBENCH_OPT_FLAGS
+ 
+ # LD		= gcc
+ # LDFLAGS 	=
+@@ -303,6 +304,8 @@
+ $(UNTOAST):	$(BIN) $(TOAST)
+ 		-rm $(RMFLAGS) $(UNTOAST)
+ 		$(LN) $(TOAST) $(UNTOAST)
++		-rm $(RMFLAGS) $(UNTOAST).map
++		$(LN) $(TOAST).map $(UNTOAST).map
+ 
+ $(TCAT):	$(BIN) $(TOAST)
+ 		-rm $(RMFLAGS) $(TCAT)
