@@ -137,7 +137,6 @@ MIBENCH_DIRS=`echo automotive/* consumer/jpeg/jpeg-6a consumer/lame/lame3.70 net
 # the runme scripts are always in the top-level benchmark dir
 MIBENCH_SCRIPT_DIRS=`echo $MIBENCH_DIRS | sed -e 's!\([^ /]*\)/\([^ /]*\)/\([^ ]*\)!\1/\2!g'`
 
-set -vx
 # copy the benchmarks
 if [ "x${MIBENCH_COPY_BENCHMARKS}" = xy ]; then
   echo Copying benchmarks...
@@ -158,7 +157,6 @@ if [ "x${MIBENCH_COPY_BENCHMARKS}" = xy ]; then
   ln -sf "$TARGET_DIR"/telecomm/gsm "$TARGET_DIR"/telecomm/gsm/src
   ln -sf "$TARGET_DIR"/telecomm/gsm "$TARGET_DIR"/telecomm/gsm/lib
 fi
-set +vx
 
 # always re-copy the runme scripts, so they can be modified again for
 # different remote execution or so
