@@ -467,11 +467,15 @@ Regression run on %s with options <code>%s</code><br>
     nvalids = 0
     for test in tests:
         exitcode = test["exitcode"]
-        csgain = test["gains"][0]
-        if len(test["gains"]) > 1:
-            totgain = test["gains"][-1]
+        if len(test["gains"]) >= 1:
+            csgain = test["gains"][0]
+            if len(test["gains"]) > 1:
+                totgain = test["gains"][-1]
+            else:
+                totgain = 0.0;
         else:
-            totgain = 0.0;
+          csgain = 0.0;
+          totgain = 0.0;
         valid = test["validation"]
         if valid:
             nvalids = nvalids + 1
