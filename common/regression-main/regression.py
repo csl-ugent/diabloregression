@@ -19,6 +19,7 @@ test_dir = "regressiontestdir"
 post_run = ""
 do_validation = 1
 binsearch_max = 0
+binsearch_logs = 0
 report = 0
 report_file = "report.html"
 start_dir = os.getcwd()
@@ -274,7 +275,8 @@ def PrintUsage():
     [-d|--diablo-dir <diablo-dir>]        (directory in which to search for the diablo executable) (default: ./diablo/)
     [-o|--diablo-opts <diablo-options>]   (options to pass to diablo) (default: none)
     [-x|--post-exec <post-run command>]   (command to run after the diablo processing and testing of a program is finished) (default: none)
-    [-b|--binary-search <max count>]      (~git bisect)
+    [-b|--binary-search <max count>]      (look for debugcounter value where test fails; <max count>+1 should be known to fail)
+    [-B|--binary-search-with-logs <mc>]   (idem as -b, but rerun Diablo on last bad/good with -v -v -v)
     [-r|--report]                         (generate report.html with test results) (default: disabled)
     [-R|--report-file <file>]             (generate <file> with test results in html) (default: disabled)
     [-m|--measure-only]                   (only process tests with diablo, do not try to run them) (default: do run tests)
@@ -293,7 +295,7 @@ def PrintUsage():
 # {{{ parse the command line arguments 
 def parse_args():
     """parse the command line arguments"""
-    global config_file, diablo_dir, diablo_opts, diablo_prog, do_validation, post_run, binsearch_max, report, report_file, do_fresh_checkout, makefile, keep_optimized, keep_suffix, test_dir, exec_previous
+    global config_file, diablo_dir, diablo_opts, diablo_prog, do_validation, post_run, binsearch_max, binsearch_logs, report, report_file, do_fresh_checkout, makefile, keep_optimized, keep_suffix, test_dir, exec_previous
 
     short_opts = "c:d:o:p:x:b:R:rmf:kK:tT:X:"
     long_opts = ["config=","diablo-dir=","diablo-opts=","measure-only","diablo-executable=","post-exec=","binary-search=","report","report-file=","fresh-checkout=","keep-optimized","keep-with-suffix=","temp-test-dir","test-dir=","exec-previous="]
@@ -318,6 +320,9 @@ def parse_args():
             post_run = arg
         elif opt == "-b" or opt == "--binary-search":
             binsearch_max = int(arg)
+        elif opt == "-B" or opt == "--binary-search-with-log":
+            binsearch_max = int(arg)
+            binsearch_logs = 1
         elif opt == "-r" or opt == "--report":
             report = 1
         elif opt == "-R" or opt == "--report-file":
@@ -439,8 +444,16 @@ def BinarySearch(test,maxcount):
             faulty = lookat
             save_with_suffix(".bad")
 
+    if (binsearch_logs == 1) and (faulty <> good):
+      print "Generating verbose logs"
+      run_diablo(test,execlog,"-c "+repr(correct))
+      save_with_suffix(".good")
+      run_diablo(test,execlog,"-c "+repr(faulty))
+      save_with_suffix(".bad")
+
     print "last correct:", correct
     print "first faulty:", faulty
+    print "Logs and binaries are in "+diablo_dir
             
 # }}}
 
