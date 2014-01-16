@@ -30,6 +30,10 @@ will show a help screen. An example usage is shown below:
   -a arm-softfp-gcc436-eglibc211 \
   -e little
 
+Tips:
+* you can use the -w parameter to specify a wrapper that will be used for 
+remote executions (e.g. -w qemu-arm)
+
 Look at ../common/regression-main/README.txt for information on how to use the
 regression.py script. The configuration file for this set of benchmars is
 called mibench.conf and is installed in the directory specified by -d

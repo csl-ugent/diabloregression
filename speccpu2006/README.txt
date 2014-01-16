@@ -34,7 +34,8 @@ Setup
 Once the SPEC benchmarks have been compiled, they can be set up for testing
 via the ../common/regression-main/regression.py script by using the
 ./spec2regression.sh script. Again, executing this script without parameters
-will show a help screen. An example usage is shown below:
+will show a help screen. An example usage for executing the benchmarks
+on a remote system is shown below:
 
   ./spec2regression.sh -s "-p 914 -c blowfish jmaebe@drone" -r "spec2006" \
   -p /home/jmaebe/private/setupspec2006/specinst \
@@ -42,6 +43,14 @@ will show a help screen. An example usage is shown below:
   -d /home/jmaebe/private/diablo/regression/arm/spec2006 \
   -a arm-softfp \
   -e little
+
+Tips:
+* if you wish to change some parameters for executing the benchmarks
+afterwards, you can rerun the spec2regression.sh script with the "-n"
+parameter and the same destination parameter. This will prevent the script
+from (uselessly) copying all benchmarks again
+* you can use the -w parameter to specify a wrapper that will be used for
+remote executions (e.g. -w qemu-arm)
 
 Look at ../common/regression-main/README.txt for information on how to use the
 regression.py script.

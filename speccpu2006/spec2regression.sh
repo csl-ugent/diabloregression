@@ -220,16 +220,16 @@ do
   dir=`basename "$dir"`
   destfile=`dirname "$file"`/`basename "$file" .org`
   (
-   if [ x"${SSH_PARAS}" != x ]; then
    echo '#!/bin/bash'
+   if [ x"${SSH_PARAS}" != x ]; then
 # all files to copy (input files have been copied into the main directory by regression.py already)
-     echo 'files=`ls -1 -d *|egrep -v "b\.out|diablo_log|runme.sh"`'
+     echo 'files=`ls -1 -d *|egrep -v "b\.out|diablo_log|runme*.sh"`'
 # delete possible leftovers from a previous test
      echo ssh "$SSH_PARAS" "'mkdir -p \"$SSH_REMOTE_DIR\"/$dir && cd \"$SSH_REMOTE_DIR\"/$dir && rm -rf *'"
 # copy all new files over
-     echo 'tar cf - $files | ssh' "$SSH_PARAS" "'cd \"$SSH_REMOTE_DIR\"/$dir && tar xf -'"
+     echo 'tar cf - $files | ssh' "$SSH_PARAS" "'cd \"$SSH_REMOTE_DIR\"/$dir && tar xmf -'"
 # extract actual testing commands and prefix them with the ssh command
-     tail -n +2 "$file" | sed -e "s!.*!ssh $SSH_PARAS \"cd '$SSH_REMOTE_DIR'/$dir \&\& $WRAPPER &\"!"
+     tail -n +2 "$file" | sed -e "s!.*!echo Executing remotely: '&'; ssh $SSH_PARAS \"cd '$SSH_REMOTE_DIR'/$dir \&\& $WRAPPER &\"!"
 # get the names of the output files that should be checked
      cd `dirname "$file"`/reference
 # grep returns an error if no output
@@ -240,11 +240,17 @@ set -e
      cd - > /dev/null
 # add command to copy the output files back to this machine
      SCP_PARAS=`echo $SSH_PARAS | sed -e 's!-p *\([^ \t][^ \t]*\)!-P \1!'`
-     echo "scp $SCP_PARAS:\"${SSH_REMOTE_DIR}\"/$dir/{"$reffiles"}" .
+# curly brances are only expanded if there's at least one comma :/
+     if [[ "$reffiles" =~ .*,.* ]]; then
+       echo "scp $SCP_PARAS:\"${SSH_REMOTE_DIR}\"/$dir/{"$reffiles"}" .
+     else
+       echo "scp $SCP_PARAS:\"${SSH_REMOTE_DIR}\"/$dir/$reffiles" .
+     fi
    else
-     cat "$file"
+     tail -n +2 "$file" | sed -e "s!.*!echo Executing: '&' ;$WRAPPER &!"
    fi
   ) > "$destfile"
   chmod +x "$destfile"
 done
+echo Done!
 

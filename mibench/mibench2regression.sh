@@ -137,7 +137,6 @@ MIBENCH_DIRS=`echo automotive/* consumer/jpeg/jpeg-6a consumer/lame/lame3.70 net
 # the runme scripts are always in the top-level benchmark dir
 MIBENCH_SCRIPT_DIRS=`echo $MIBENCH_DIRS | sed -e 's!\([^ /]*\)/\([^ /]*\)/\([^ ]*\)!\1/\2!g'`
 
-set -vx
 # copy the benchmarks
 if [ "x${MIBENCH_COPY_BENCHMARKS}" = xy ]; then
   echo Copying benchmarks...
@@ -158,7 +157,6 @@ if [ "x${MIBENCH_COPY_BENCHMARKS}" = xy ]; then
   ln -sf "$TARGET_DIR"/telecomm/gsm "$TARGET_DIR"/telecomm/gsm/src
   ln -sf "$TARGET_DIR"/telecomm/gsm "$TARGET_DIR"/telecomm/gsm/lib
 fi
-set +vx
 
 # always re-copy the runme scripts, so they can be modified again for
 # different remote execution or so
@@ -236,16 +234,16 @@ do
   dir=`basename "$dir"`
   destfile=`dirname "$file"`/`basename "$file" .org`
   (
+   echo '#!/bin/bash'
    if [ x"${SSH_PARAS}" != x ]; then
-     echo '#!/bin/bash'
 # all files to copy (input files have been copied into the main directory by regression.py already)
      echo 'files=`ls -1 -d *|egrep -v "b\.out|diablo_log|runme*.sh"`'
 # delete possible leftovers from a previous test
      echo ssh "$SSH_PARAS" "'mkdir -p \"$SSH_REMOTE_DIR\"/$dir && cd \"$SSH_REMOTE_DIR\"/$dir && rm -rf *'"
 # copy all new files over
-     echo 'tar cf - $files | ssh' "$SSH_PARAS" "'cd \"$SSH_REMOTE_DIR\"/$dir && tar xf -'"
+     echo 'tar cf - $files | ssh' "$SSH_PARAS" "'cd \"$SSH_REMOTE_DIR\"/$dir && tar xmf -'"
 # extract actual testing commands and prefix them with the ssh command
-     tail -n +2 "$file" | sed -e "s!.*!ssh $SSH_PARAS \"cd '$SSH_REMOTE_DIR'/$dir \&\& $WRAPPER &\"!"
+     tail -n +2 "$file" | sed -e "s!.*!echo Executing remotely: '&'; ssh $SSH_PARAS \"cd '$SSH_REMOTE_DIR'/$dir \&\& $WRAPPER &\"!"
 # get the names of the output files that should be checked
      cd `dirname "$file"`/reference
      reffiles=`echo * | sed -e 's/ /,/g'`
@@ -253,13 +251,13 @@ do
 # add command to copy the output files back to this machine
      SCP_PARAS=`echo $SSH_PARAS | sed -e 's!-p *\([^ \t][^ \t]*\)!-P \1!'`
 # curly brances are only expanded if there's at least one comma :/
-     if [[ $reffiles =~ ".*,.*" ]]; then
+     if [[ "$reffiles" =~ .*,.* ]]; then
        echo "scp $SCP_PARAS:\"${SSH_REMOTE_DIR}\"/$dir/{"$reffiles"}" .
      else
        echo "scp $SCP_PARAS:\"${SSH_REMOTE_DIR}\"/$dir/$reffiles" .
      fi
    else
-     cat "$file"
+     tail -n +2 "$file" | sed -e "s!.*!echo Executing: '&' ;$WRAPPER &!"
    fi
   ) > "$destfile"
   chmod +x "$destfile"
