@@ -234,8 +234,8 @@ do
   dir=`basename "$dir"`
   destfile=`dirname "$file"`/`basename "$file" .org`
   (
+   echo '#!/bin/bash'
    if [ x"${SSH_PARAS}" != x ]; then
-     echo '#!/bin/bash'
 # all files to copy (input files have been copied into the main directory by regression.py already)
      echo 'files=`ls -1 -d *|egrep -v "b\.out|diablo_log|runme*.sh"`'
 # delete possible leftovers from a previous test
@@ -243,7 +243,7 @@ do
 # copy all new files over
      echo 'tar cf - $files | ssh' "$SSH_PARAS" "'cd \"$SSH_REMOTE_DIR\"/$dir && tar xf -'"
 # extract actual testing commands and prefix them with the ssh command
-     tail -n +2 "$file" | sed -e "s!.*!ssh $SSH_PARAS \"cd '$SSH_REMOTE_DIR'/$dir \&\& $WRAPPER &\"!"
+     tail -n +2 "$file" | sed -e "s!.*!echo Executing remotely: '&'; ssh $SSH_PARAS \"cd '$SSH_REMOTE_DIR'/$dir \&\& $WRAPPER &\"!"
 # get the names of the output files that should be checked
      cd `dirname "$file"`/reference
      reffiles=`echo * | sed -e 's/ /,/g'`
@@ -257,7 +257,7 @@ do
        echo "scp $SCP_PARAS:\"${SSH_REMOTE_DIR}\"/$dir/$reffiles" .
      fi
    else
-     cat "$file"
+     tail -n +2 "$file" | sed -e "s!.*!echo Executing: '&' ;$WRAPPER &!"
    fi
   ) > "$destfile"
   chmod +x "$destfile"
