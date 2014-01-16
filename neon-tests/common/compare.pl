@@ -6,6 +6,8 @@ use warnings;
 no warnings 'portable';  # Support for 64-bit ints required
 
 use Data::Dumper;
+use File::Basename;
+use File::Spec;
 
 # Sort an array of register names according to the ordering of Diablo.
 # Diablo outputs the registers in the following order:
@@ -15,28 +17,50 @@ use Data::Dumper;
 #    Returns   : sorted array
 sub sortregs {
   return sort {
-    # validate first register name
-    if ($a !~ m/([rds])([0-9]+)/) {
+    # validate and get first register name
+    my $aType = "";
+    my $aNum  = "";
+    if ($a !~ m/(?:([rds])([0-9]+))|(?:(c)(c|v|z|n))/) {
       die "Error: invalid register $a\n";
     }
-    my $aType = $1;
-    my $aNum  = $2;
+    if (defined $1) {
+      $aType = $1;
+      $aNum = $2;
+    } else {
+      $aType = $3;
+      $aNum = $4;
+    }
 
-    # validate second register name
-    if ($b !~ m/([rds])([0-9]+)/) {
+    # validate and get second register name
+    my $bType = "";
+    my $bNum  = "";
+    if ($b !~ m/(?:([rds])([0-9]+))|(?:(c)(c|v|z|n))/) {
       die "Error: invalid register $b\n";
     }
-    my $bType = $1;
-    my $bNum  = $2;
+    if (defined $1) {
+      $bType = $1;
+      $bNum = $2;
+    } else {
+      $bType = $3;
+      $bNum = $4;
+    }
 
     # compare the two register names
     if ($aType eq $bType) {
+
       # both registers are of the same type
-      return 0+($aNum) <=> 0+($bNum);
+      if ($aType eq "c") {
+        my $alphabet = "cvzn";
+        return index($alphabet, $aType) <=> index($alphabet, $bType);
+
+      } else {
+        return 0+($aNum) <=> 0+($bNum);
+
+      }
 
     } else {
       # both registers are of a different type
-      my $alphabet = "rsd";
+      my $alphabet = "rcsd";
       return index($alphabet, $aType) <=> index($alphabet, $bType);
 
     }
@@ -75,20 +99,73 @@ sub normalizeInstruction($)
 
 die "Fatal: support for 64-bit ints required\n" if ('' . hex('100000000')) ne '4294967296';
 
-if (@ARGV < 2 || @ARGV > 3)
+# =================================================================================================
+# check arguments
+if (@ARGV < 2 || @ARGV > 4)
 {
-  print STDERR "Usage: $0 diablo_trace_log asm_dump [skip]\n";
+  print STDERR "Usage: $0 <diablo trace> <objdump log> [skip] [objdump pre-UAL to UAL list]\n";
   exit 1;
-}
 
+}
+my $path = dirname(File::Spec->rel2abs(__FILE__));
+
+# save arguments, default to no line skipping
 my $traceLogFile  = $ARGV[0];
 my $dumpFile      = $ARGV[1];
 my $skip          = @ARGV > 2 ? $ARGV[2] : 0;
+#my $listFile      = @ARGV > 3 ? $ARGV[3] : "$path/preual-to-ual.list";
+my $listFile = "$path/preual-to-ual.list";
+my $defalsousefile = "$path/def-also-use.list";
 
+# *************************************************************************************************
+# READ THE PRE-UAL TO UAL TRANSLATION LIST
+my %translations;
+{
+  my $line;
+
+  open my $lf, '<', $listFile or die "Failed to open instruction mnemonic list file: $listFile ($!)\n";
+  while (<$lf>)
+  {
+    # read next line, remove trailing NL
+    $line = $_;
+    chomp $line;
+
+    # skip empty lines
+    next if $line =~ m/^\s*$/;
+
+    # valid line format: "<mnemonic to translate> <resulting mnemonic>"
+    if ($line =~ m/^([^\s]*)\s+(.*)$/) {
+      $translations{$1} = $2;
+
+    } else {
+      print "Warning: unrecognized text in list file at line $.: $line\n";
+
+    }
+  }
+}
+
+# *************************************************************************************************
+# READ THE DEF-ALSO-USE LIST FILE
+my @defalsouse;
+{
+  my $line;
+
+  open my $lf, '<', $defalsousefile or die "Failed to open defined, also used list file: $defalsousefile ($!)\n";
+  while (<$lf>)
+  {
+    $line = $_;
+    chomp $line;
+    next if $line =~ m/^\s*$/;
+    push(@defalsouse, $line);
+  }
+}
+
+# *************************************************************************************************
+# READ THE OBJECT DUMP DISASSEMBLY FILE
 my %instructions;
-
 {
   my ($dumpHeader, $lastLine, $line);
+
   open my $df, '<', $dumpFile or die "Failed to open assembly dump file: $dumpFile ($!)\n";
   while (<$df>)
   {
@@ -99,13 +176,11 @@ my %instructions;
     chomp $line;
 
     # Skip empty lines
-    # "whitespace"
     next if $line =~ m/^\s*$/;
 
     # Skip header
     if (!(defined $dumpHeader))
     {
-      # :"whitespace"file format elf32-littlearm
       if ($line =~ m/:\s+file format elf32-littlearm$/)
       {
         $dumpHeader = 1;
@@ -118,18 +193,24 @@ my %instructions;
     next if $line =~ m/^Disassembly of section/;
 
     # Skip function/symbol names
-    # "whitespace""hex" <"text">:
     next if $line =~ m/^\s*[0-f]+ \<([^\>]+)\>:$/;
 
-    # "whitespace""hex":"tab""hex(4-thumb,8-arm)""whitespace""text (as few as possible, 0 or more --- ?)"
-    #  do not include the trailing part of an instruction ('?:'): "whitespace";"text" --- this part is optional (trailing '?')
-    #  '[^\s].*?' --> [^\s] not really necessary, just a precaution
+    # valid lines: <hex address>: <hex opcode> <instruction> ; <data>
+    #   we discard the "<data>"-part
     if ($line =~ m/^\s*([0-f]+):\t[0-f]{4,8}\s+([^\s].*?)(?:\s+;.*)?$/)
     {
       my $address = hex($1);
       my $instruction = $2;
 
-      # replace all whitespace characters with ONE space
+      # translate instruction mnemonic to the UAL variant
+      $instruction =~ m/^([^\s]*)/;
+      my $mnemonic = $1;
+      if (exists $translations{$1}) {
+        my $new_mnemonic = $translations{$1};
+        $instruction =~ s/^[^\s]*/$new_mnemonic/;
+      }
+
+      # replace all multiple whitespace characters with ONE space
       $instruction =~ s/\s+/ /g;
       $instruction =~ s/\s*\:\s*/\:/g;
       # remove trailing <...>
@@ -138,6 +219,7 @@ my %instructions;
       $instruction =~ s/^vldmia r13!,/vpop/;
       #   same for vpush
       $instruction =~ s/^vstmdb r13!,/vpush/;
+      $instruction =~ s/APSR_nzcv/cpsr/g;
 
       $instruction = normalizeInstruction($instruction);
 
@@ -168,6 +250,8 @@ my %instructions;
   close $df;
 }
 
+# *************************************************************************************************
+# READ AND PARSE THE DIABLO TRACE LOG FILE
 open my $tf, '<', $traceLogFile or die "Failed to open trace log file: $traceLogFile ($!)\n";
 while (<$tf>)
 {
@@ -254,7 +338,7 @@ while (<$tf>)
     my $uses = "";
 
     # split arguments in first argument and rest
-    my $rx_reg = qr/[rds][0-9]+|fpscr/;
+    my $rx_reg = qr/[rds][0-9]+|fpscr|cpsr/;
     my $rx_regs = qr/(?:${rx_reg})(?:,${rx_reg})*/;
     my $rx_regwb = qr/${rx_reg}\!/;
     my $rx_list = qr/\{${rx_regs}\}/;
@@ -262,13 +346,15 @@ while (<$tf>)
     my $rx_double = qr/d[0-9]+/;
     my $rx_single = qr/s[0-9]+/;
     my $rx_align = qr/\:\s*([0-9]+)\s*/;
+    my $rx_cond = qr/cc|cv|cz|cn/;
 
-    my @r = $deflist =~ m/(${rx_reg})/g;
+    my @r = $deflist =~ m/(${rx_reg}|${rx_cond})/g;
     $deflist = join(',', @r);
     @r = $uselist =~ m/(${rx_reg})/g;
     $uselist = join(',', @r);
 
-    $operandiexp =~ /^(?:(${rx_regs})|(${rx_regwb})|\{(${rx_regs})\}),\|(.*)$/;
+    $operandiexp =~ /^(?:(${rx_regs})|(${rx_regwb})|\{(${rx_regs})\}),\|\s*(.*)$/;
+
 
     my $dest = "";
     if (defined $1) {
@@ -278,10 +364,14 @@ while (<$tf>)
     } elsif (defined $3) {
       $dest = $3;
     } else {
-      die "Error: invalid destination register\n";
+      die "Error: invalid destination register: $instruction\n";
     }
 
+
     my $src = join(',', $4 =~ m/${rx_reg}/g);
+
+    # diablo does not represent the CPSR directly in its def/use sets
+    $dest =~ s/cpsr/cc,cv,cz,cn/g;
 
     my $alignDiablo  = "";
     my $alignObjdump = "";
@@ -349,8 +439,14 @@ while (<$tf>)
       $defs = $dest;
       $uses = $src;
 
-      if ($mnemonic eq "vmov") {
-        if ($operandi =~ m/^${rx_core},${rx_core},${rx_double}|(${rx_single},${rx_single})$/) {
+      # check if dest is also used
+      $mnemonic =~ /^([^\.]*)/;
+      if ($1 ~~ @defalsouse) {
+        $uses = "$defs,$uses";
+      }
+
+      if ($mnemonic =~ m/^vmov/) {
+        if ($operandi =~ m/^${rx_core},${rx_core},(?:${rx_double}|(${rx_single},${rx_single}))$/) {
           # mov rX, rY, dZ
           my @ops = $operandiexp =~ /${rx_reg}/g;
 
@@ -367,6 +463,10 @@ while (<$tf>)
 
       $defs =~ s/,$//;
       $uses =~ s/,$//;
+    }
+
+    if($mnemonic =~ m/^vstr|vldr/) {
+      $instruction =~ s/,#0\]/\]/g;
     }
 
     if ($alignDiablo ne $alignObjdump) {
