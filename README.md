@@ -19,3 +19,5 @@ testing
  - common/regression-main: Python script containing the generic regression
      testing framework. Usable after installing one or more of the
      aforementioned regression testing suites.
+ - common/fakediablo: Shell script that can be passed as "diablo" binary to
+     regression.py to test the original binary
