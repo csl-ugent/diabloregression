@@ -350,6 +350,7 @@ while (<$tf>)
     my $rx_single = qr/s[0-9]+/;
     my $rx_align = qr/\:\s*([0-9]+)\s*/;
     my $rx_cond = qr/cc|cv|cz|cn/;
+    my $rx_cc = qr/EQ|NE|CS|CC|MI|PL|VS|VC|HI|LS|GE|LT|GT|LE/i;
 
     my @r = $deflist =~ m/(${rx_reg}|${rx_cond})/g;
     $deflist = join(',', @r);
@@ -438,14 +439,27 @@ while (<$tf>)
         $defs = $1;
       }
 
+    } elsif ($mnemonic =~ m/^vcmp/) {
+      $defs = "fpscr";
+      $uses = "$dest,$src";
+
     } else {
       $defs = $dest;
       $uses = $src;
 
-      # check if dest is also used
+      # extract pure mnemonic, without datatypes
       $mnemonic =~ /^([^\.]*)/;
-      if ($1 ~~ @defalsouse) {
+      my $tmp = $1;
+      # check if dest is also used
+      if ($tmp ~~ @defalsouse) {
         $uses = "$defs,$uses";
+
+      } else {
+        $tmp =~ s/${rx_cc}$//;
+
+        if ($tmp ~~ @defalsouse) {
+          $uses = "$defs,$uses";
+        }
       }
 
       if ($mnemonic =~ m/^vmov/) {
@@ -464,9 +478,10 @@ while (<$tf>)
         }
       }
 
-      $defs =~ s/,$//;
-      $uses =~ s/,$//;
     }
+
+    $defs =~ s/,$//;
+    $uses =~ s/,$//;
 
     if($mnemonic =~ m/^vstr|vldr/) {
       $instruction =~ s/,#0\]/\]/g;
@@ -488,7 +503,7 @@ Diablo-uses: >$uselist<
 Defs       : >$defs<
 Uses       : >$uses<
 END
-      die "Use/Def register sets incorrect on Diablo line $.\n";
+      die "Use/Def register sets incorrect on Diablo line $. in $traceLogFile\n";
     }
 
     if (defined $instructions{$address})
