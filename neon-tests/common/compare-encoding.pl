@@ -174,8 +174,18 @@ my $listFile     = $ARGV[2];
         my $newAddrHex = sprintf("%08x", $newAddress);
         my $newEncHex = sprintf("%08x", $newEncoding);
 
-        my $diff = printDifference($oldEncoding, $newEncoding);
-        print "Error: difference - OLD: 0x$oldAddrHex 0x$oldEncHex '$oldInstruction'\tNEW: 0x$newAddrHex 0x$newEncHex '$newInstruction'\n$diff\n\n";
+        # maybe we are dealing with an VLDR/VSTR instruction relative to the PC...
+        # for the time being, disable checking the immediate value.
+        my $oldEncodingTest = $oldEncoding & 0x0f2f0e00;
+        my $newEncodingTest = $newEncoding & 0x0f2f0e00;
+        if(($oldEncodingTest == $newEncodingTest) and ($oldEncodingTest == 0x0d0f0a00)) {
+          print "Warning: ignoring immediate VLDR/VSTR instruction relative to the PC: $oldEncHex : $oldInstruction (address 0x$oldAddrHex -> 0x$newAddrHex)\n"
+
+        } else {
+          my $diff = printDifference($oldEncoding, $newEncoding);
+          print "Error: difference - OLD: 0x$oldAddrHex 0x$oldEncHex '$oldInstruction'\tNEW: 0x$newAddrHex 0x$newEncHex '$newInstruction'\n$diff\n\n";
+
+        }
       }
     }
   }
