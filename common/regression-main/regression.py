@@ -297,8 +297,8 @@ def parse_args():
     """parse the command line arguments"""
     global config_file, diablo_dir, diablo_opts, diablo_prog, do_validation, post_run, binsearch_max, binsearch_logs, report, report_file, do_fresh_checkout, makefile, keep_optimized, keep_suffix, test_dir, exec_previous
 
-    short_opts = "c:d:o:p:x:b:R:rmf:kK:tT:X:"
-    long_opts = ["config=","diablo-dir=","diablo-opts=","measure-only","diablo-executable=","post-exec=","binary-search=","report","report-file=","fresh-checkout=","keep-optimized","keep-with-suffix=","temp-test-dir","test-dir=","exec-previous="]
+    short_opts = "c:d:o:p:x:b:B:R:rmf:kK:tT:X:"
+    long_opts = ["config=","diablo-dir=","diablo-opts=","measure-only","diablo-executable=","post-exec=","binary-search=","--binary-search-with-log","report","report-file=","fresh-checkout=","keep-optimized","keep-with-suffix=","temp-test-dir","test-dir=","exec-previous="]
 
     try:
         opts, args = getopt(sys.argv[1:],short_opts,long_opts);
