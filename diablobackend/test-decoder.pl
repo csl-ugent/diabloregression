@@ -38,8 +38,19 @@ my @instructions;
     next if $line =~ m/^\s*$/;
 
     # valid line format: "<mnemonic to translate> <resulting mnemonic>"
-    if ($line =~ m/^\s*\{0x([0-f]{8}),\s*0x([0-f]{8}),\s*"([^"]*)",\s*[^\}]*\},?.*$/i) {
-      push @instructions, { mask => $1, value => $2, mnemonic => $3, line => $linenr };
+    if ($line =~ m/^\s*\{0x([0-f]{8}),\s*0x([0-f]{8}),\s*"([^"]*)",\s*([^\}]*)\},?.*$/i) {
+      my $mask = $1;
+      my $value = $2;
+      my $mnemonic = $3;
+      my $handler = $4;
+
+      if (($mnemonic =~ m/^f/i) and ($handler =~ m/vfp/i) and !($mnemonic =~ m/fstmx|fldmx/i)) {
+        print "Warning: ignoring deprecated floating-point instruction at line $linenr: $line\n";
+
+      } else {
+        push @instructions, { mask => $mask, value => $value, mnemonic => $mnemonic, line => $linenr };
+        
+      }
 
     } elsif ($line =~ m/^# ([0-9]*)/) {
       $linenr = 0+$1-1;
@@ -56,12 +67,12 @@ my @instructions;
 ################### TEST DECODER TABLE
 {
   foreach my $aKey (0 .. $#instructions-1) {
-    # iterate over each instruction
+    # iterate over each instruction, except the default catch-all handler
     my $aValue = hex($instructions[$aKey]{'value'});
     my $fKey;
 
     foreach my $bKey (0 .. $#instructions) {
-      # find match for instructionA
+      # find match for the instruction-under-test
       my $bMask = hex($instructions[$bKey]{'mask'});
       my $bValue = hex($instructions[$bKey]{'value'});
 
