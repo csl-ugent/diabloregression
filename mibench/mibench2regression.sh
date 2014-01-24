@@ -132,6 +132,10 @@ fi
 
 # go to installation dir
 cd "$MIBENCH_INSTALLED_DIR"
+if [ ! -d automotive -a -d mibench/automotive ]; then
+  MIBENCH_INSTALLED_DIR="$MIBENCH_INSTALLED_DIR"/mibench
+  cd "$MIBENCH_INSTALLED_DIR"
+fi
 
 MIBENCH_DIRS=`echo automotive/* consumer/jpeg/jpeg-6a consumer/lame/lame3.70 network/dijkstra network/patricia security/rijndael security/sha telecomm/adpcm/src telecomm/CRC32 telecomm/FFT telecomm/gsm/src office/stringsearch`
 # the runme scripts are always in the top-level benchmark dir
