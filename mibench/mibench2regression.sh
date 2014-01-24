@@ -220,11 +220,11 @@ if [ "x${MIBENCH_COPY_BENCHMARKS}" = xy ]; then
         copyfile=`echo "$MIBENCH_INSTALLED_DIR"/"$inputdir"/*/"$file"`
       fi
       cp "$copyfile" "$TARGET_DIR"/"$dir"/"$file"
-# arch-specific overrides
-      if [ -d "$FP_DATA_DIR"/"$benchdir" ]; then
-        cp -R "$FP_DATA_DIR"/"$benchdir"/* "$TARGET_DIR"/"$dir"/"$file"
-      fi
     done
+# arch-specific overrides
+    if [ -d "$FP_DATA_DIR"/"$dir" ]; then
+      cp -R "$FP_DATA_DIR"/"$dir"/* "$TARGET_DIR"/"$dir"/reference
+    fi
   done
 fi
 
