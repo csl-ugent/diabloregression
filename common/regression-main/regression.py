@@ -444,7 +444,7 @@ def BinarySearch(test,maxcount):
             faulty = lookat
             save_with_suffix(".bad")
 
-    if (binsearch_logs == 1) and (faulty <> good):
+    if (binsearch_logs == 1) and (faulty <> correct):
       print "Generating verbose logs"
       run_diablo(test,execlog,"-c "+repr(correct))
       save_with_suffix(".good")
