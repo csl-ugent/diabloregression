@@ -13,7 +13,7 @@ Usage: $0 [-n] [-s <SSH_PARAS>] [-r <SSH_REMOTE_DIR] -p <MIBENCH_INSTALLED_DIR> 
   -r SSH_REMOTE_DIR      (opt) directory used on remote system for testing (default: home directory; must already exist)
   -p MIBENCH_INSTALLED_DIR  (req) Top level directory where MIBENCH_CPU2006 was installed
   -d TARGET_DIR          (req) Directory in which to copy the benchmarks, input/output files and run scripts (e.g. \$HOME/regression/arm/mibench; will be created if necessary)
-  -a FP_ARCH             (req) Floating point arch used, supported options: arm-softfp-gcc436-eglibc211
+  -a FP_ARCH             (req) Floating point arch used, supported options: arm-softfp-gcc436-eglibc211, x86-gcc481
   -e ARCH_ENDIANESS      (opt) Endianness of the target platform ("little" or "big", default: little)
   -w WRAPPER             (opt) Wrap execution of remote commands with this wrapper program (only effective if used with -s)
 HELP
