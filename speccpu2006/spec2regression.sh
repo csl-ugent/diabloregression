@@ -13,7 +13,7 @@ Usage: $0 [-n] [-s <SSH_PARAS>] [-r <SSH_REMOTE_DIR] -p <SPEC_INSTALLED_DIR> -b 
   -p SPEC_INSTALLED_DIR  (req) Top level directory where SPEC_CPU2006 was installed
   -b SPEC_BUILD_DIR      (req unless -n) Specify the name of the SPEC_CPU2006 build directory (found in SPEC_INSTALLED_DIR/benchspec/CPU2006/*/build, e.g. build_base_CONFIG-nn.0000)
   -d TARGET_DIR          (req) Directory in which to copy the benchmarks, input/output files and run scripts (e.g. \$HOME/regression/arm/spec2006; will be created if necessary)
-  -a FP_ARCH             (req) Floating point arch used, supported options: arm-softfp, x86-gcc481
+  -a FP_ARCH             (req) Floating point arch used, supported options: arm-softfp-gcc436-eglibc211, arm-softfp-gcc481-eglibc217, x86-gcc481, x86-gcc481-O3
   -e ARCH_ENDIANESS      (opt) Endianness of the target platform ("little" or "big", default: little)
   -w WRAPPER             (opt) Wrap execution of remote commands with this wrapper program
 HELP
