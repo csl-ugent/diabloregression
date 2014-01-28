@@ -156,10 +156,14 @@ fi
 PATCHES_DIR="`dir_make_and_resolve \"${PATCHES_DIR}\"`"
 
 # sanity check for crosstools install dir
+EXTRA_CROSSTOOLS_PREFIX_DIR=1
 if [ ! -x "$CROSSTOOLS_INSTALLED_DIR"/"$CROSSTOOLS_PREFIX"/bin/"$CROSSTOOLS_PREFIX"-gcc ]; then
-  echo "$CROSSTOOLS_INSTALLED_DIR"/"$CROSSTOOLS_PREFIX"/bin/"$CROSSTOOLS_PREFIX"-gcc does not exist or is not executable, check "<CT_INSTALLED_DIR> and <CT_PREFIX> parameters to this script"
-  echo
-  exit 1
+  EXTRA_CROSSTOOLS_PREFIX_DIR=0
+  if [ ! -x "$CROSSTOOLS_INSTALLED_DIR"/bin/"$CROSSTOOLS_PREFIX"-gcc ]; then
+    echo Neither "$CROSSTOOLS_INSTALLED_DIR"/bin/"$CROSSTOOLS_PREFIX"-gcc nor "$CROSSTOOLS_INSTALLED_DIR"/"$CROSSTOOLS_PREFIX"/bin/"$CROSSTOOLS_PREFIX"-gcc exists or is not executable, check "<CT_INSTALLED_DIR> and <CT_PREFIX> parameters to this script"
+    echo
+    exit 1
+  fi
 fi
 
 # create the destination directory and resolve it to an absolute path
@@ -202,7 +206,12 @@ fi
 echo "Building MiBench... ($MIBENCH_TARGET_DIR/build.log)"
 cd "$MIBENCH_TARGET_DIR"
 SHA_LITTLE_ENDIAN_DEFINE=`echo $ARCH_ENDIANESS | sed -e "s/le/-DLITTLE_ENDIAN/g" -e "s/be/-DBIG_ENDIAN/g"`
-sed -e "s?CT_INSTALLED_DIR?$CROSSTOOLS_INSTALLED_DIR?g" -e "s?CT_PREFIX?${CROSSTOOLS_PREFIX}?g" -e "s?MIBENCH_OPT_FLAGS?$MIBENCH_OPT_FLAGS?g" -e "s?SHA_LITTLE_ENDIAN_DEFINE?${SHA_LITTLE_ENDIAN_DEFINE}?g" < "$PATCHES_DIR"/mibench-makefiles.patch | patch -p1 > /dev/null 2>&1
+if [ "$EXTRA_CROSSTOOLS_PREFIX_DIR" -eq 0 ]; then
+  SED_FILTER_EXTRA_CROSSTOOLS_PREFIX_DIR="s+CT_INSTALLED_DIR/CT_PREFIX+CT_INSTALLED_DIR+"
+else
+  SED_FILTER_EXTRA_CROSSTOOLS_PREFIX_DIR="s///"
+fi
+sed -e "$SED_FILTER_EXTRA_CROSSTOOLS_PREFIX_DIR" -e "s?CT_INSTALLED_DIR?$CROSSTOOLS_INSTALLED_DIR?g" -e "s?CT_PREFIX?${CROSSTOOLS_PREFIX}?g" -e "s?MIBENCH_OPT_FLAGS?$MIBENCH_OPT_FLAGS?g" -e "s?SHA_LITTLE_ENDIAN_DEFINE?${SHA_LITTLE_ENDIAN_DEFINE}?g" < "$PATCHES_DIR"/mibench-makefiles.patch | patch -p1 > /dev/null 2>&1
 # patch aes
 patch -p1 < "$PATCHES_DIR"/mibench-aes.patch > /dev/null
 # patch bitcnts (remove execution output variation)

@@ -121,10 +121,14 @@ fi
 PATCHES_DIR="`dir_make_and_resolve \"${PATCHES_DIR}\"`"
 
 # sanity check for crosstools install dir
+EXTRA_CROSSTOOLS_PREFIX_DIR=1
 if [ ! -x "$CROSSTOOLS_INSTALLED_DIR"/"$CROSSTOOLS_PREFIX"/bin/"$CROSSTOOLS_PREFIX"-gcc ]; then
-  echo "$CROSSTOOLS_INSTALLED_DIR"/"$CROSSTOOLS_PREFIX"/bin/"$CROSSTOOLS_PREFIX"-gcc does not exist or is not executable, check "<CT_INSTALLED_DIR> and <CT_PREFIX> parameters to this script"
-  echo
-  exit 1
+  EXTRA_CROSSTOOLS_PREFIX_DIR=0
+  if [ ! -x "$CROSSTOOLS_INSTALLED_DIR"/bin/"$CROSSTOOLS_PREFIX"-gcc ]; then
+    echo Neither "$CROSSTOOLS_INSTALLED_DIR"/bin/"$CROSSTOOLS_PREFIX"-gcc nor "$CROSSTOOLS_INSTALLED_DIR"/"$CROSSTOOLS_PREFIX"/bin/"$CROSSTOOLS_PREFIX"-gcc exists or is not executable, check "<CT_INSTALLED_DIR> and <CT_PREFIX> parameters to this script"
+    echo
+    exit 1
+  fi
 fi
 
 # extract architecture from crosstools prefix
@@ -206,7 +210,13 @@ cd "$SPEC_INSTALLDIR"
 # create a config to build the benchmarks with patched toolchain
 echo Creating SPEC build configuration...
 cp config/Example-linux32-i386-gcc42.cfg config/"$SPEC_CONFIG_NAME".cfg
-sed -e "s?DIABLO_SPEC_CONFIG_NAME?$SPEC_CONFIG_NAME?g" -e "s?DIABLO_CROSSTOOLS_INSTALLED_DIR?$CROSSTOOLS_INSTALLED_DIR?g" -e "s?DIABLO_CROSSTOOLS_PREFIX?$CROSSTOOLS_PREFIX?g" -e "s?DIABLO_SPEC_OPTIMIZE_FLAGS?$SPEC_OPT_FLAGS?g" -e "s?SPEC_PARALLEL_BUILD_FACTOR?$SPEC_PARALLEL_BUILD_FACTOR?g"  < "$PATCHES_DIR"/spec_config.patch | patch -p1
+if [ "$EXTRA_CROSSTOOLS_PREFIX_DIR" -eq 0 ]; then
+  SED_FILTER_EXTRA_CROSSTOOLS_PREFIX_DIR="s+DIABLO_CROSSTOOLS_INSTALLED_DIR/DIABLO_CROSSTOOLS_PREFIX+DIABLO_CROSSTOOLS_INSTALLED_DIR+"
+else
+  SED_FILTER_EXTRA_CROSSTOOLS_PREFIX_DIR="s///"
+fi
+
+sed -e "$SED_FILTER_EXTRA_CROSSTOOLS_PREFIX_DIR" -e "s?DIABLO_SPEC_CONFIG_NAME?$SPEC_CONFIG_NAME?g" -e "s?DIABLO_CROSSTOOLS_INSTALLED_DIR?$CROSSTOOLS_INSTALLED_DIR?g" -e "s?DIABLO_CROSSTOOLS_PREFIX?$CROSSTOOLS_PREFIX?g" -e "s?DIABLO_SPEC_OPTIMIZE_FLAGS?$SPEC_OPT_FLAGS?g" -e "s?SPEC_PARALLEL_BUILD_FACTOR?$SPEC_PARALLEL_BUILD_FACTOR?g"  < "$PATCHES_DIR"/spec_config.patch | tee testje | patch -p1
 
 echo Building SPEC_CPU2006...
 # restore environment to default
