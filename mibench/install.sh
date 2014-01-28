@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -ue
+set -u
 
 print_help_exit() {
 cat<<HELP
@@ -215,6 +215,11 @@ for dir in automotive/* consumer/jpeg/jpeg-6a consumer/lame/lame3.70 network/dij
   proccount=$(($proccount + 1))
   cd "$dir"
   make > "$MIBENCH_TARGET_DIR"/build.`basename $dir`.log 2>&1 &
+  if [ $? -ne 0 ]; then
+    echo Failure building "$dir", see "$MIBENCH_TARGET_DIR"/build.`basename $dir`.log for more info
+    echo
+    exit 1
+  fi
   cd "$MIBENCH_TARGET_DIR"
   lastpid=${!}
   pidlist=`echo "$pidlist $lastpid" | sed 's/^ *//g'`
