@@ -446,9 +446,9 @@ def BinarySearch(test,maxcount):
 
     if (binsearch_logs == 1) and (faulty <> correct):
       print "Generating verbose logs"
-      run_diablo(test,execlog,"-c "+repr(correct))
+      run_diablo(test,execlog,"-v -v -v -c "+repr(correct))
       save_with_suffix(".good")
-      run_diablo(test,execlog,"-c "+repr(faulty))
+      run_diablo(test,execlog,"-v -v -v -c "+repr(faulty))
       save_with_suffix(".bad")
 
     print "last correct:", correct
