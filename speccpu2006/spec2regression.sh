@@ -128,17 +128,24 @@ if [ $? != 0 ]; then
   exit 1
 fi
 
-if [ "x${SPEC_COPY_BENCHMARKS}" = xy ]; then
 ###########
 # copy the benchmarks
-  for dir in "$SPEC_INSTALLED_DIR"/benchspec/CPU2006/*/; do
-    benchdir=`basename "$dir"`
-    if [ -d "$TARGET_DIR"/"$benchdir" ] ; then
-      rm -rf "$TARGET_DIR"/"$benchdir"
+MISSING_BENCHMARKS=
+for dir in "$SPEC_INSTALLED_DIR"/benchspec/CPU2006/*/; do
+  benchdir=`basename "$dir"`
+  if [ -d "$dir"/build/"$SPEC_BUILD_DIR" ]; then
+    if [ "x${SPEC_COPY_BENCHMARKS}" = xy ]; then
+      if [ -d "$TARGET_DIR"/"$benchdir" ] ; then
+        rm -rf "$TARGET_DIR"/"$benchdir"
+      fi
+      cp -R "$dir"/build/"$SPEC_BUILD_DIR" "$TARGET_DIR"/"$benchdir"
     fi
-    cp -R "$dir"/build/"$SPEC_BUILD_DIR" "$TARGET_DIR"/"$benchdir"
-  done
+  else
+    MISSING_BENCHMARKS="$MISSING_BENCHMARKS `echo $benchdir|sed -e 's/[^.]*\.//'`"
+  fi
+done
 
+if [ "x${SPEC_COPY_BENCHMARKS}" = xy ]; then
 # copy input files into benchmark directories
   for dir in "$SPEC_INSTALLED_DIR"/benchspec/CPU2006/*/; do
     benchdir=`basename "$dir"`
@@ -193,7 +200,20 @@ cd "$HELPER_DATA_DIR"
 for dir in */ ; do
   cp "$dir"/* "$TARGET_DIR"/"$dir"
 done
+
 sed -e "s!TEMPLATE_BASEDIR!$TARGET_DIR!" < spec2006.conf > "$TARGET_DIR"/spec2006.conf
+# filter out benchmarks that weren't compiled from main configfile
+for bench in $MISSING_BENCHMARKS; do
+  benchlinestart=`grep -n $bench "$TARGET_DIR"/spec2006.conf 2>/dev/null | head -n 1 | sed -e 's/:.*//'`
+  if [ ! -z "$benchlinestart" ]; then
+    echo "Removing $bench from config file because it was not compiled (note that clang does not support Fortran benchmarks)"
+    (
+      head -n $(($benchlinestart-1)) < "$TARGET_DIR"/spec2006.conf
+      tail -n +$(($benchlinestart+5)) < "$TARGET_DIR"/spec2006.conf
+    ) > "$TARGET_DIR"/spec2006.conf.new
+    mv "$TARGET_DIR"/spec2006.conf.new "$TARGET_DIR"/spec2006.conf
+  fi
+done
 cd "$STARTUP_DIR"
 
 # modify runmescripts for remote execution if necessary

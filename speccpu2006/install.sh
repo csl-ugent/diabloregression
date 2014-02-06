@@ -37,8 +37,9 @@ SPEC_INSTALLDIR=
 SPEC_CONFIG_NAME=
 CROSSTOOLS_INSTALLED_DIR=
 CROSSTOOLS_PREFIX=
+CLANG_INSTALLED_DIR=
 
-while getopts rnkf:j:O:d:c:t:p:h\? opt; do
+while getopts rnkf:j:O:d:c:C:t:p:h\? opt; do
   case $opt in
     r) ONLY_REBUILD=y
       ;;
@@ -53,6 +54,8 @@ while getopts rnkf:j:O:d:c:t:p:h\? opt; do
     O) SPEC_OPT_FLAGS="$OPTARG"
       ;;
     d) SPEC_INSTALLDIR="$OPTARG"
+      ;;
+    C) CLANG_INSTALLED_DIR="$OPTARG"
       ;;
     c) SPEC_CONFIG_NAME="$OPTARG"
       ;;
@@ -195,12 +198,25 @@ cd "$SPEC_INSTALLDIR"
 echo Creating SPEC build configuration...
 cp config/Example-linux32-i386-gcc42.cfg config/"$SPEC_CONFIG_NAME".cfg
 if [ "$EXTRA_CROSSTOOLS_PREFIX_DIR" -eq 0 ]; then
+  CROSSTOOLS_ROOT="$CROSSTOOLS_INSTALLED_DIR/"
   SED_FILTER_EXTRA_CROSSTOOLS_PREFIX_DIR="s+DIABLO_CROSSTOOLS_INSTALLED_DIR/DIABLO_CROSSTOOLS_PREFIX+DIABLO_CROSSTOOLS_INSTALLED_DIR+"
 else
+  CROSSTOOLS_ROOT="$CROSSTOOLS_INSTALLED_DIR/$CROSSTOOLS_PREFIX"
   SED_FILTER_EXTRA_CROSSTOOLS_PREFIX_DIR="s/willneverexist//"
 fi
 
-sed -e "$SED_FILTER_EXTRA_CROSSTOOLS_PREFIX_DIR" -e "s?DIABLO_SPEC_CONFIG_NAME?$SPEC_CONFIG_NAME?g" -e "s?DIABLO_CROSSTOOLS_INSTALLED_DIR?$CROSSTOOLS_INSTALLED_DIR?g" -e "s?DIABLO_CROSSTOOLS_PREFIX?$CROSSTOOLS_PREFIX?g" -e "s?DIABLO_SPEC_OPTIMIZE_FLAGS?$SPEC_OPT_FLAGS?g" -e "s?SPEC_PARALLEL_BUILD_FACTOR?$SPEC_PARALLEL_BUILD_FACTOR?g"  < "$PATCHES_DIR"/spec_config.patch | tee testje | patch -p1
+if [ ! -z "$CLANG_INSTALLED_DIR" ]; then
+  SED_FILTER_GCC_TO_CLANG="s!DIABLO_CROSSTOOLS_INSTALLED_DIR/DIABLO_CROSSTOOLS_PREFIX/bin/DIABLO_CROSSTOOLS_PREFIX-gcc!$CLANG_INSTALLED_DIR/bin/clang!g"
+  SED_FILTER_GPLUSPLUS_TO_CLANG="s!DIABLO_CROSSTOOLS_INSTALLED_DIR/DIABLO_CROSSTOOLS_PREFIX/bin/DIABLO_CROSSTOOLS_PREFIX-g++!$CLANG_INSTALLED_DIR/bin/clang++!g"
+  SPEC_OPT_FLAGS="$SPEC_OPT_FLAGS -isysroot $CROSSTOOLS_ROOT/$CROSSTOOLS_PREFIX/sysroot -no-integrated-as -gcc-toolchain $CROSSTOOLS_ROOT -ccc-gcc-name $CROSSTOOLS_PREFIX -target $CROSSTOOLS_PREFIX"
+  SPEC_EXCLUDE_BENCHMARKS="^410.bwaves ^416.gamess ^434.zeusmp ^435.gromacs ^436.cactusADM ^437.leslie3d ^454.calculix ^459.GemsFDTD ^465.tonto ^481.wrf"
+else
+  SED_FILTER_GCC_TO_CLANG="s/willneverexist//"
+  SED_FILTER_GPLUSPLUS_TO_CLANG="s/willneverexist//"
+  SPEC_EXCLUDE_BENCHMARKS=
+fi
+
+sed -e "$SED_FILTER_GCC_TO_CLANG" -e "$SED_FILTER_GPLUSPLUS_TO_CLANG" -e "$SED_FILTER_EXTRA_CROSSTOOLS_PREFIX_DIR" -e "s?DIABLO_SPEC_CONFIG_NAME?$SPEC_CONFIG_NAME?g" -e "s?DIABLO_CROSSTOOLS_INSTALLED_DIR?$CROSSTOOLS_INSTALLED_DIR?g" -e "s?DIABLO_CROSSTOOLS_PREFIX?$CROSSTOOLS_PREFIX?g" -e "s?DIABLO_SPEC_OPTIMIZE_FLAGS?$SPEC_OPT_FLAGS?g" -e "s?SPEC_PARALLEL_BUILD_FACTOR?$SPEC_PARALLEL_BUILD_FACTOR?g"  < "$PATCHES_DIR"/spec_config.patch | patch -p1
 
 echo Building SPEC_CPU2006...
 # restore environment to default
@@ -209,8 +225,12 @@ echo "  Executing: cd $SPEC_INSTALLDIR"
 cd "$SPEC_INSTALLDIR"
 echo "  Executing: source shrc"
 source shrc
-echo "  Executing: runspec -a build -c $SPEC_CONFIG_NAME --size=test all >specbuild.log 2>&1"
-runspec -a build -c $SPEC_CONFIG_NAME --size=test all >specbuild.log 2>&1
+echo "  Executing: runspec -a build -c $SPEC_CONFIG_NAME --size=test all $SPEC_EXCLUDE_BENCHMARKS >specbuild.log 2>&1"
+runspec -a build -c $SPEC_CONFIG_NAME --size=test all $SPEC_EXCLUDE_BENCHMARKS >specbuild.log 2>&1
+grep "Error building" specbuild.log
+if [ $? -eq 0 ]; then
+  echo "   There were errors building some benchmarks, see $SPEC_INSTALLDIR/benchspec/CPU2006/<benchname>/build/build_base_${SPEC_CONFIG_NAME}-nn.0000/make.err for details"
+fi
 echo Done!
 echo
 echo "Now execute spec2regression.sh to create a directory layout and configuration scripts that can be used by the regression.py script (see README.txt for an example)"

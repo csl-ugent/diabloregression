@@ -16,6 +16,9 @@ example usage is shown below:
   -t /home/jmaebe/toolchains/diablo-gcc-4.3.6-binutils-2.18-eglibc-2.11-arm \
   -p arm-unknown-linux-gnueabi
 
+If you want to build with clang, add e.g.
+  -C /home/jmaebe/diablo/toolchains/diablo-clang34
+
 Note that the log files generated during the installation of SPEC2006 will
 contain errors, such as the inability to install the SPEC tools at the end of
 the specinstall.log file. You can ignore these, as they are expected. Unless

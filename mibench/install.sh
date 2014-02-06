@@ -47,8 +47,9 @@ ARCH_ENDIANESS=le
 MIBENCH_TARGET_DIR=
 CROSSTOOLS_INSTALLED_DIR=
 CROSSTOOLS_PREFIX=
+CLANG_INSTALLED_DIR=
 
-while getopts nkj:O:d:t:p:e:h\? opt; do
+while getopts nkj:O:d:C:t:p:e:h\? opt; do
   case $opt in
     n) DOWNLOAD_MIBENCH=n
       ;;
@@ -59,6 +60,8 @@ while getopts nkj:O:d:t:p:e:h\? opt; do
     O) MIBENCH_OPT_FLAGS="$OPTARG"
       ;;
     d) MIBENCH_TARGET_DIR="$OPTARG"
+      ;;
+    C) CLANG_INSTALLED_DIR="$OPTARG"
       ;;
     t) CROSSTOOLS_INSTALLED_DIR="$OPTARG" 
       ;;
@@ -191,11 +194,23 @@ echo "Building MiBench... ($MIBENCH_TARGET_DIR/build.log)"
 cd "$MIBENCH_TARGET_DIR"
 SHA_LITTLE_ENDIAN_DEFINE=`echo $ARCH_ENDIANESS | sed -e "s/le/-DLITTLE_ENDIAN/g" -e "s/be/-DBIG_ENDIAN/g"`
 if [ "$EXTRA_CROSSTOOLS_PREFIX_DIR" -eq 0 ]; then
+  CROSSTOOLS_ROOT="$CROSSTOOLS_INSTALLED_DIR/"
   SED_FILTER_EXTRA_CROSSTOOLS_PREFIX_DIR="s+CT_INSTALLED_DIR/CT_PREFIX+CT_INSTALLED_DIR+"
 else
+  CROSSTOOLS_ROOT="$CROSSTOOLS_INSTALLED_DIR/$CROSSTOOLS_PREFIX"
   SED_FILTER_EXTRA_CROSSTOOLS_PREFIX_DIR="s/willneverexist//"
 fi
-sed -e "$SED_FILTER_EXTRA_CROSSTOOLS_PREFIX_DIR" -e "s?CT_INSTALLED_DIR?$CROSSTOOLS_INSTALLED_DIR?g" -e "s?CT_PREFIX?${CROSSTOOLS_PREFIX}?g" -e "s?MIBENCH_OPT_FLAGS?$MIBENCH_OPT_FLAGS?g" -e "s?SHA_LITTLE_ENDIAN_DEFINE?${SHA_LITTLE_ENDIAN_DEFINE}?g" < "$PATCHES_DIR"/mibench-makefiles.patch | patch -p1 > /dev/null 2>&1
+
+if [ ! -z "$CLANG_INSTALLED_DIR" ]; then
+  SED_FILTER_GCC_TO_CLANG="s!CT_INSTALLED_DIR/CT_PREFIX/bin/CT_PREFIX-gcc!$CLANG_INSTALLED_DIR/bin/clang!g"
+  SED_FILTER_GPLUSPLUS_TO_CLANG="s!CT_INSTALLED_DIR/CT_PREFIX/bin/CT_PREFIX-g++!$CLANG_INSTALLED_DIR/bin/clang++!g"
+  MIBENCH_OPT_FLAGS="$MIBENCH_OPT_FLAGS -isysroot $CROSSTOOLS_ROOT/$CROSSTOOLS_PREFIX/sysroot -no-integrated-as -gcc-toolchain $CROSSTOOLS_ROOT -ccc-gcc-name $CROSSTOOLS_PREFIX -target $CROSSTOOLS_PREFIX"
+else
+  SED_FILTER_GCC_TO_CLANG="s/willneverexist//"
+  SED_FILTER_GPLUSPLUS_TO_CLANG="s/willneverexist//"
+fi
+
+sed -e "$SED_FILTER_GCC_TO_CLANG" -e "$SED_FILTER_GPLUSPLUS_TO_CLANG" -e "$SED_FILTER_EXTRA_CROSSTOOLS_PREFIX_DIR" -e "s?CT_INSTALLED_DIR?$CROSSTOOLS_INSTALLED_DIR?g" -e "s?CT_PREFIX?${CROSSTOOLS_PREFIX}?g" -e "s?MIBENCH_OPT_FLAGS?$MIBENCH_OPT_FLAGS?g" -e "s?SHA_LITTLE_ENDIAN_DEFINE?${SHA_LITTLE_ENDIAN_DEFINE}?g" < "$PATCHES_DIR"/mibench-makefiles.patch | tee testje | patch -p1 > /dev/null 2>&1
 # patch aes
 patch -p1 < "$PATCHES_DIR"/mibench-aes.patch > /dev/null
 # patch bitcnts (remove execution output variation)

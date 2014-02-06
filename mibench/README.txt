@@ -11,10 +11,14 @@ Installing and building
 Executing the ./install.sh script without parameters shows a help screen. An
 example usage is shown below:
 
-  ./install.sh -j 8 -d /home/jmaebe/private/setupspec2006 \
+  ./install.sh -j 8 -d /home/jmaebe/private/mibenchinst/mibench-arm-O1 \
+  -O "-O1" \
   -t /home/jmaebe/toolchains/diablo-gcc-4.3.6-binutils-2.18-eglibc-2.11-arm \
   -p arm-unknown-linux-gnueabi \
   -e little
+
+If you want to build with clang, add e.g.
+  -C /home/jmaebe/diablo/toolchains/diablo-clang34
 
 Setup
 =====
