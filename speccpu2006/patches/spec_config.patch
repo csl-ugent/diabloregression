@@ -59,8 +59,8 @@
  400.perlbench=default=default=default:
 -notes35    = 400.perlbench: -DSPEC_CPU_LINUX_IA32
 -CPORTABILITY= -DSPEC_CPU_LINUX_IA32
-+notes35    = 400.perlbench: -DSPEC_CPU_LINUX
-+CPORTABILITY= -DSPEC_CPU_LINUX
++notes35    = 400.perlbench: -DSPEC_CPU_LINUX -std=gnu89
++CPORTABILITY= -DSPEC_CPU_LINUX -std=gnu89
  
  462.libquantum=default=default=default:
  notes60= 462.libquantum: -DSPEC_CPU_LINUX
