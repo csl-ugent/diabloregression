@@ -69,7 +69,7 @@
  
  # Link-time cc options:
 -LDFLAGS= 
-+LDFLAGS= -static -Wl,-Map,$@.map
++LDFLAGS= -static -Wl,-Map,$@.map $(CFLAGS)
  
  # To link any special libraries, add the necessary -l commands here.
  LDLIBS= 
