@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source `dirname "$0"`/../common/scripthelpers/benchinstall.rc
+
 set -u
 
 print_help_exit() {
@@ -17,28 +19,10 @@ Usage: $0 [-n] [-k] [-f <SPEC_ARCHIVE>] [-j <SPEC_PAR_BUILD>] [-O <SPEC_OPT_FLAG
   -c SPEC_CONFIG_NAME    (req) Specify the name of the SPEC_CPU2006 configuration name to generate (freely chooseable)
   -t CT_INSTALLED_DIR    (req) Specify the directory under which the crosstools have been installed (parameter passed to build.sh of Diablo binutils)
   -p CT_PREFIX           (req) Specify the prefix of the used binutils (e.g. arm-unknown-linux-gnueabi)
+  -C CLANG_INSTALLED_DIR (opt) Specify the directry in which clang has been installed (will compile benchmarks with clang)
   -h/-?                  (opt) Print this text and exit
 HELP
 exit 1
-}
-
-# arg1: string to check whether it's not empty
-# arg2: name of the parameter that should have been set
-checkempty() {
-  if [ x"$1" = x ]; then
-    echo
-    echo Error: Missing required parameter $2
-    echo
-    print_help_exit
-  fi
-}
-
-# arg 1: name of the directory to create and whose resolved path (without ".." etc) to output
-dir_make_and_resolve()
-{
-   mkdir -p "$1" 
-   cd "$1" 2>/dev/null || return $?  # cd to desired directory; if fail, quell any error messages but return exit status
-  echo "`pwd -P`" # output full, link-resolved path
 }
 
 ONLY_REBUILD=n

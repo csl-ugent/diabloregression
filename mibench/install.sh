@@ -2,6 +2,8 @@
 
 set -u
 
+source `dirname "$0"`/../common/scripthelpers/benchinstall.rc
+
 print_help_exit() {
 cat<<HELP
 This script installs MiBench and builds it with a particular toolchain.
@@ -14,29 +16,11 @@ Usage: $0 [-n] [-k] [-j <MIBENCH_PAR_BUILD>] [-O <MIBENCH_OPT_FLAGS>] -d <MIBENC
   -d MIBENCH_TARGET_DIR  (req) Specify the directory where MiBench should be installed
   -t CT_INSTALLED_DIR    (req) Specify the directory under which the crosstools have been installed (parameter passed to build.sh of Diablo binutils)
   -p CT_PREFIX           (req) Specify the prefix of the used binutils (e.g. arm-unknown-linux-gnueabi)
+  -C CLANG_INSTALLED_DIR (opt) Specify the directry in which clang has been installed (will compile benchmarks with clang)
   -e ARCH_ENDIANESS      (opt) Endianness of the target platform ("little" or "big", default: little)
   -h/-?                  (opt) Print this text and exit
 HELP
 exit 1
-}
-
-# arg1: string to check whether it's not empty
-# arg2: name of the parameter that should have been set
-checkempty() {
-  if [ x"$1" = x ]; then
-    echo
-    echo Error: Missing required parameter $2
-    echo
-    print_help_exit
-  fi
-}
-
-# arg 1: name of the directory to create and whose resolved path (without ".." etc) to output
-dir_make_and_resolve()
-{
-   mkdir -p "$1" 
-   cd "$1" 2>/dev/null || return $?  # cd to desired directory; if fail, quell any error messages but return exit status
-  echo "`pwd -P`" # output full, link-resolved path
 }
 
 # arg 1: url to download; will delete previous version of download if it exists

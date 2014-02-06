@@ -2,6 +2,8 @@
 
 set -eu
 
+source `dirname "$0"`/../common/scripthelpers/benchinstall.rc
+
 print_help_exit() {
 cat <<HELP
 This script sets up SPEC benchmarks for remote execution and checking 
@@ -18,25 +20,6 @@ Usage: $0 [-n] [-s <SSH_PARAS>] [-r <SSH_REMOTE_DIR] -p <SPEC_INSTALLED_DIR> -b 
   -w WRAPPER             (opt) Wrap execution of remote commands with this wrapper program
 HELP
 exit 1
-}
-
-# arg1: string to check whether it's not empty
-# arg2: name of the parameter that should have been set
-checkempty() {
-  if [ x"$1" = x ]; then
-    echo
-    echo Error: Missing required parameter $2
-    echo
-    print_help_exit
-  fi
-}
-
-# arg 1: name of the directory to create and whose resolved path (without ".." etc) to output
-dir_make_and_resolve()
-{
-   mkdir -p "$1" 
-   cd "$1" 2>/dev/null || return $?  # cd to desired directory; if fail, quell any error messages but return exit status
-  echo "`pwd -P`" # output full, link-resolved path
 }
 
 SPEC_COPY_BENCHMARKS=y
