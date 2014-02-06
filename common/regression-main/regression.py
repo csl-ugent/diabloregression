@@ -409,18 +409,23 @@ def BinarySearch(test,maxcount):
     execlog = "diablo_log."+test["executable"]
     b_out = "b.out"
     final_list = b_out+".list"
+    final_dir = join(diablo_dir,'debugresults');
 
     def save_with_suffix(suffix):
         try:
-            shutil.copyfile(execlog,join(diablo_dir,execlog+suffix))
+            os.makedirs(final_dir)
+        except OSError:
+            pass
+        try:
+            shutil.copyfile(execlog,join(final_dir,execlog+suffix))
         except IOError:
             pass
         try:
-            shutil.copyfile(b_out,join(diablo_dir,b_out+suffix))
+            shutil.copyfile(b_out,join(final_dir,b_out+suffix))
         except IOError:
             pass
         try:
-            shutil.copyfile(final_list,join(diablo_dir,final_list+suffix))
+            shutil.copyfile(final_list,join(final_dir,final_list+suffix))
         except IOError:
             pass
 
@@ -453,7 +458,7 @@ def BinarySearch(test,maxcount):
 
     print "last correct:", correct
     print "first faulty:", faulty
-    print "Logs and binaries are in "+diablo_dir
+    print "Logs and binaries are in "+final_dir
             
 # }}}
 
