@@ -158,17 +158,31 @@ my $listFile     = $ARGV[2];
   my %addressTranslations;
   readListing($listFile, \%addressTranslations);
 
-  print "Comparing old with new objdump, only looking at V* instructions\n";
+  #print "Comparing old with new objdump, only looking at V* instructions\n";
   foreach my $oldAddress (keys %addressTranslations) {
     my $oldEncoding = $oldEncodings{$oldAddress};
     my $oldInstruction = $oldInstructions{$oldAddress};
+    $oldInstruction =~ m/\s*([^\s]*)/;
+    my $oldMnemonic = $1;
 
     my $newAddress = $addressTranslations{$oldAddress};
     my $newEncoding = $newEncodings{$newAddress};
     my $newInstruction = $newInstructions{$newAddress};
+    $newInstruction =~ m/\s*([^\s]*)/;
+    my $newMnemonic = $1;
 
-    if ($newInstruction =~ m/^v/ or $oldInstruction =~ m/^v/) {
-      if ($newEncoding != $oldEncoding) {
+    # skip movw/movt instructions
+    next if (($newMnemonic =~ m/movw/i) or ($newMnemonic =~ m/movt/i));
+    # skip load PC immetiate instructions
+    next if ($oldEncoding & 0x0f7f0000)==0x051f0000;
+    # skip load PC register instructions
+    next if ($oldEncoding & 0x0e5f0000)==0x061f0000;
+
+    #if ($newInstruction =~ m/^v/ or $oldInstruction =~ m/^v/)
+    #if ($oldMnemonic != $newMnemonic)
+    {
+      if ($oldMnemonic eq $newMnemonic && $oldMnemonic=~m/^bl?/i) {
+      } elsif ($newEncoding != $oldEncoding) {
         my $oldAddrHex = sprintf("%08x", $oldAddress);
         my $oldEncHex = sprintf("%08x", $oldEncoding);
         my $newAddrHex = sprintf("%08x", $newAddress);
@@ -179,7 +193,7 @@ my $listFile     = $ARGV[2];
         my $oldEncodingTest = $oldEncoding & 0x0f2f0e00;
         my $newEncodingTest = $newEncoding & 0x0f2f0e00;
         if(($oldEncodingTest == $newEncodingTest) and ($oldEncodingTest == 0x0d0f0a00)) {
-          print "Warning: ignoring immediate VLDR/VSTR instruction relative to the PC: $oldEncHex : $oldInstruction (address 0x$oldAddrHex -> 0x$newAddrHex)\n"
+          #print "Warning: ignoring immediate VLDR/VSTR instruction relative to the PC: $oldEncHex : $oldInstruction (address 0x$oldAddrHex -> 0x$newAddrHex)\n"
 
         } else {
           my $diff = printDifference($oldEncoding, $newEncoding);
