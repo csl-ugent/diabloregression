@@ -67,7 +67,7 @@
  CPORTABILITY= -DSPEC_CPU_LINUX
  
 +447.dealII=default=default=default:
-+CXXPORTABILITY= -include cstdlib -include cstring
++CXXPORTABILITY= -include cstddef -include cstring -include cstdlib
 +
  483.xalancbmk=default=default=default:
 -CXXPORTABILITY= -DSPEC_CPU_LINUX
