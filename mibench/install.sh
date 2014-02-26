@@ -222,12 +222,13 @@ pidlist=''
 for dir in automotive/* consumer/jpeg/jpeg-6a consumer/lame/lame3.70 network/dijkstra network/patricia security/rijndael security/sha telecomm/adpcm/src telecomm/CRC32 telecomm/FFT telecomm/gsm office/stringsearch; do
   proccount=$(($proccount + 1))
   cd "$dir"
-  make > "$MIBENCH_TARGET_DIR"/build.`basename $dir`.log 2>&1 &
-  if [ $? -ne 0 ]; then
-    echo Failure building "$dir", see "$MIBENCH_TARGET_DIR"/build.`basename $dir`.log for more info
-    echo
-    exit 1
-  fi
+  ( make > "$MIBENCH_TARGET_DIR"/build.`basename $dir`.log 2>&1
+    if [ $? -ne 0 ]; then
+      echo Failure building "$dir", see "$MIBENCH_TARGET_DIR"/build.log for more info
+      echo
+      exit 1
+    fi
+  ) &
   cd "$MIBENCH_TARGET_DIR"
   lastpid=${!}
   pidlist=`echo "$pidlist $lastpid" | sed 's/^ *//g'`
