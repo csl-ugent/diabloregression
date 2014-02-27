@@ -215,6 +215,8 @@ sed -e "$SED_FILTER_GCC_TO_CLANG" -e "$SED_FILTER_GPLUSPLUS_TO_CLANG" -e "$SED_F
 patch -p1 < "$PATCHES_DIR"/mibench-aes.patch > /dev/null
 # patch bitcnts (remove execution output variation)
 patch -p1 < "$PATCHES_DIR"/mibench-bitcnts.patch > /dev/null
+# patch lame (disable i386 assembler code unhandled by clang)
+patch -p1 < "$PATCHES_DIR"/mibench-lame.patch > /dev/null
 
 # compile supported benchmarks (partly in parallel, see http://www.andrewzammit.com/blog/scripting-parallel-bash-commands-jobs/ )
 proccount=0
