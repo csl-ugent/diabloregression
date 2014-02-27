@@ -210,7 +210,7 @@ else
   SED_FILTER_GPLUSPLUS_TO_CLANG="s/willneverexist//"
 fi
 
-sed -e "$SED_FILTER_GCC_TO_CLANG" -e "$SED_FILTER_GPLUSPLUS_TO_CLANG" -e "$SED_FILTER_EXTRA_CROSSTOOLS_PREFIX_DIR" -e "s?CT_INSTALLED_DIR?$CROSSTOOLS_INSTALLED_DIR?g" -e "s?CT_PREFIX?${CROSSTOOLS_PREFIX}?g" -e "s?MIBENCH_OPT_FLAGS?$MIBENCH_OPT_FLAGS?g" -e "s?SHA_LITTLE_ENDIAN_DEFINE?${SHA_LITTLE_ENDIAN_DEFINE}?g" < "$PATCHES_DIR"/mibench-makefiles.patch | tee testje | patch -p1 > /dev/null 2>&1
+sed -e "$SED_FILTER_GCC_TO_CLANG" -e "$SED_FILTER_GPLUSPLUS_TO_CLANG" -e "$SED_FILTER_EXTRA_CROSSTOOLS_PREFIX_DIR" -e "s?CT_INSTALLED_DIR?$CROSSTOOLS_INSTALLED_DIR?g" -e "s?CT_PREFIX?${CROSSTOOLS_PREFIX}?g" -e "s?MIBENCH_OPT_FLAGS?$MIBENCH_OPT_FLAGS?g" -e "s?SHA_LITTLE_ENDIAN_DEFINE?${SHA_LITTLE_ENDIAN_DEFINE}?g" < "$PATCHES_DIR"/mibench-makefiles.patch | patch -p1 > /dev/null 2>&1
 # patch aes
 patch -p1 < "$PATCHES_DIR"/mibench-aes.patch > /dev/null
 # patch bitcnts (remove execution output variation)
