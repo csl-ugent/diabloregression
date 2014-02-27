@@ -246,6 +246,7 @@ if [ ! -z "$pidlist" ]; then
 fi
 
 cd "$MIBENCH_TARGET_DIR"
+rm -f build.log
 logfiles=`echo *.log`
 head -n 999999 $logfiles > "$MIBENCH_TARGET_DIR"/build.log
 rm $logfiles
