@@ -4,7 +4,34 @@ set -eu
 
 source `dirname "$0"`/../common/scripthelpers/benchinstall.rc
 
+
+# save starting dir
+STARTUP_DIR=`pwd`
+
+# check if we can find our bench helper data
+HELPER_DATA_DIR="$STARTUP_DIR"/helperdata
+if [ ! -f "$HELPER_DATA_DIR"/401.bzip2/runme.sh.org ]; then
+  HELPER_DATA_DIR="`dirname \"$0\"`"/helperdata
+  if [ ! -f "$HELPER_DATA_DIR"/401.bzip2/runme.sh.org ]; then
+    echo Cannot find \"helperdata\" directory in the current directory nor in the directory containing this script
+    exit 1
+  fi
+fi
+
+# check if the specified fp architecture is supported
+OVERRIDESDIR="$STARTUP_DIR"/outputoverrides
+if [ ! -d "$OVERRIDESDIR" ]; then
+  OVERRIDESDIR="`dirname \"$0\"`"/outputoverrides
+  if [ ! -d "$OVERRIDESDIR" ]; then
+    echo Cannot fined \"outputoverrides\" in the current directory not in the directory containing this script
+    echo
+    exit 1
+  fi
+fi
+
 print_help_exit() {
+cd "$OVERRIDESDIR"
+OVERRIDES=`echo * | sed -e 's/ /, /g'`
 cat <<HELP
 This script sets up SPEC benchmarks for remote execution and checking 
 
@@ -15,7 +42,7 @@ Usage: $0 [-n] [-s <SSH_PARAS>] [-r <SSH_REMOTE_DIR] -p <SPEC_INSTALLED_DIR> -b 
   -p SPEC_INSTALLED_DIR  (req) Top level directory where SPEC_CPU2006 was installed
   -b SPEC_BUILD_DIR      (req unless -n) Specify the name of the SPEC_CPU2006 build directory (found in SPEC_INSTALLED_DIR/benchspec/CPU2006/*/build, e.g. build_base_CONFIG-nn.0000)
   -d TARGET_DIR          (req) Directory in which to copy the benchmarks, input/output files and run scripts (e.g. \$HOME/regression/arm/spec2006; will be created if necessary)
-  -a FP_ARCH             (req) Floating point arch used, supported options: arm-softfp-gcc436-eglibc211, arm-softfp-gcc481-eglibc217, x86-gcc481-O{1,2,3,s}
+  -a FP_ARCH             (req) Floating point arch used, supported options: $OVERRIDES
   -e ARCH_ENDIANESS      (opt) Endianness of the target platform ("little" or "big", default: little)
   -w WRAPPER             (opt) Wrap execution of remote commands with this wrapper program
 HELP
@@ -65,34 +92,11 @@ while getopts ns:r:p:b:d:a:e:w:h\? opt; do
 done
 shift `expr $OPTIND - 1`
 
-# save starting dir
-STARTUP_DIR=`pwd`
-
 checkempty "$TARGET_DIR" -d
 checkempty "$SPEC_INSTALLED_DIR" -p
 checkempty "$FP_ARCH" -a
 checkempty "$ARCH_ENDIANESS" -e
 
-# check if we can find our bench helper data
-HELPER_DATA_DIR="$STARTUP_DIR"/helperdata
-if [ ! -f "$HELPER_DATA_DIR"/401.bzip2/runme.sh.org ]; then
-  HELPER_DATA_DIR="`dirname \"$0\"`"/helperdata
-  if [ ! -f "$HELPER_DATA_DIR"/401.bzip2/runme.sh.org ]; then
-    echo Cannot find \"helperdata\" directory in the current directory nor in the directory containing this script
-    exit 1
-  fi
-fi
-
-# check if the specified fp architecture is supported
-OVERRIDESDIR="$STARTUP_DIR"/outputoverrides
-if [ ! -d "$OVERRIDESDIR" ]; then
-  OVERRIDESDIR="`dirname \"$0\"`"/outputoverrides
-  if [ ! -d "$OVERRIDESDIR" ]; then
-    echo Cannot fined \"outputoverrides\" in the current directory not in the directory containing this script
-    echo
-    exit 1
-  fi
-fi
 FP_DATA_DIR="$OVERRIDESDIR"/"$FP_ARCH"
 if [ ! -d "$FP_DATA_DIR" ]; then
   echo $FP_ARCH is an unsupported architecture, $FP_DATA_DIR not found
