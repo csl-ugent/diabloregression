@@ -5,7 +5,33 @@ shopt -s extglob
 
 source `dirname "$0"`/../common/scripthelpers/benchinstall.rc
 
+
+# save starting dir
+STARTUP_DIR=`pwd`
+
+# check if we can find our bench helper data
+HELPER_DATA_DIR="$STARTUP_DIR"/helperdata
+if [ ! -f "$HELPER_DATA_DIR"/conffiles/automotive/basicmath/regression_small.conf ]; then
+  HELPER_DATA_DIR="`dirname \"$0\"`"/helperdata
+  if [ ! -f "$HELPER_DATA_DIR"/conffiles/automotive/basicmath/regression_small.conf ]; then
+    echo Cannot find \"helperdata\" directory in the current directory nor in the directory containing this script
+    exit 1
+  fi
+fi
+# get absolute path
+HELPER_DATA_DIR="`dir_make_and_resolve \"${HELPER_DATA_DIR}\"`"
+
+# check if the specified fp architecture is supported
+OVERRIDESDIR="$HELPER_DATA_DIR"/outputoverrides
+if [ ! -d "$OVERRIDESDIR" ]; then
+  echo Cannot fined \"outputoverrides\" in $HELPER_DATA_DIR
+  echo
+  exit 1
+fi
+
 print_help_exit() {
+cd "$OVERRIDESDIR"
+OVERRIDES=`echo * | sed -e 's/ /, /g'`
 cat <<HELP
 This script sets up mibench benchmarks for remote execution and checking 
 
@@ -15,7 +41,7 @@ Usage: $0 [-n] [-s <SSH_PARAS>] [-r <SSH_REMOTE_DIR] -p <MIBENCH_INSTALLED_DIR> 
   -r SSH_REMOTE_DIR      (opt) directory used on remote system for testing (default: home directory; must already exist)
   -p MIBENCH_INSTALLED_DIR  (req) Top level directory where MIBENCH_CPU2006 was installed
   -d TARGET_DIR          (req) Directory in which to copy the benchmarks, input/output files and run scripts (e.g. \$HOME/regression/arm/mibench; will be created if necessary)
-  -a FP_ARCH             (req) Floating point arch used, supported options: arm-softfp-gcc436-eglibc211, x86-gcc481
+  -a FP_ARCH             (req) Floating point arch used, supported options: $OVERRIDES
   -e ARCH_ENDIANESS      (opt) Endianness of the target platform ("little" or "big", default: little)
   -w WRAPPER             (opt) Wrap execution of remote commands with this wrapper program (only effective if used with -s)
 HELP
@@ -62,33 +88,6 @@ while getopts ns:r:p:d:a:e:w:h\? opt; do
 done
 shift `expr $OPTIND - 1`
 
-# save starting dir
-STARTUP_DIR=`pwd`
-
-checkempty "$TARGET_DIR" -d
-checkempty "$MIBENCH_INSTALLED_DIR" -p
-checkempty "$FP_ARCH" -a
-checkempty "$ARCH_ENDIANESS" -e
-
-# check if we can find our bench helper data
-HELPER_DATA_DIR="$STARTUP_DIR"/helperdata
-if [ ! -f "$HELPER_DATA_DIR"/conffiles/automotive/basicmath/regression_small.conf ]; then
-  HELPER_DATA_DIR="`dirname \"$0\"`"/helperdata
-  if [ ! -f "$HELPER_DATA_DIR"/conffiles/automotive/basicmath/regression_small.conf ]; then
-    echo Cannot find \"helperdata\" directory in the current directory nor in the directory containing this script
-    exit 1
-  fi
-fi
-# get absolute path
-HELPER_DATA_DIR="`dir_make_and_resolve \"${HELPER_DATA_DIR}\"`"
-
-# check if the specified fp architecture is supported
-OVERRIDESDIR="$HELPER_DATA_DIR"/outputoverrides
-if [ ! -d "$OVERRIDESDIR" ]; then
-  echo Cannot fined \"outputoverrides\" in $HELPER_DATA_DIR
-  echo
-  exit 1
-fi
 FP_DATA_DIR="$OVERRIDESDIR"/"$FP_ARCH"
 if [ ! -d "$FP_DATA_DIR" ]; then
   echo $FP_ARCH is an unsupported architecture, $FP_DATA_DIR not found
@@ -97,6 +96,12 @@ if [ ! -d "$FP_DATA_DIR" ]; then
   ls -1 | sed -e 's/^/  /'
   exit 1
 fi
+
+checkempty "$TARGET_DIR" -d
+checkempty "$MIBENCH_INSTALLED_DIR" -p
+checkempty "$FP_ARCH" -a
+checkempty "$ARCH_ENDIANESS" -e
+
 
 if [ "x${MIBENCH_COPY_BENCHMARKS}" = xy ]; then
 # check if the MIBENCH_INSTALLED_DIR exists

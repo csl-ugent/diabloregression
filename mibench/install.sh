@@ -210,11 +210,13 @@ else
   SED_FILTER_GPLUSPLUS_TO_CLANG="s/willneverexist//"
 fi
 
-sed -e "$SED_FILTER_GCC_TO_CLANG" -e "$SED_FILTER_GPLUSPLUS_TO_CLANG" -e "$SED_FILTER_EXTRA_CROSSTOOLS_PREFIX_DIR" -e "s?CT_INSTALLED_DIR?$CROSSTOOLS_INSTALLED_DIR?g" -e "s?CT_PREFIX?${CROSSTOOLS_PREFIX}?g" -e "s?MIBENCH_OPT_FLAGS?$MIBENCH_OPT_FLAGS?g" -e "s?SHA_LITTLE_ENDIAN_DEFINE?${SHA_LITTLE_ENDIAN_DEFINE}?g" < "$PATCHES_DIR"/mibench-makefiles.patch | tee testje | patch -p1 > /dev/null 2>&1
+sed -e "$SED_FILTER_GCC_TO_CLANG" -e "$SED_FILTER_GPLUSPLUS_TO_CLANG" -e "$SED_FILTER_EXTRA_CROSSTOOLS_PREFIX_DIR" -e "s?CT_INSTALLED_DIR?$CROSSTOOLS_INSTALLED_DIR?g" -e "s?CT_PREFIX?${CROSSTOOLS_PREFIX}?g" -e "s?MIBENCH_OPT_FLAGS?$MIBENCH_OPT_FLAGS?g" -e "s?SHA_LITTLE_ENDIAN_DEFINE?${SHA_LITTLE_ENDIAN_DEFINE}?g" < "$PATCHES_DIR"/mibench-makefiles.patch | patch -p1 > /dev/null 2>&1
 # patch aes
 patch -p1 < "$PATCHES_DIR"/mibench-aes.patch > /dev/null
 # patch bitcnts (remove execution output variation)
 patch -p1 < "$PATCHES_DIR"/mibench-bitcnts.patch > /dev/null
+# patch lame (disable i386 assembler code unhandled by clang)
+patch -p1 < "$PATCHES_DIR"/mibench-lame.patch > /dev/null
 
 # compile supported benchmarks (partly in parallel, see http://www.andrewzammit.com/blog/scripting-parallel-bash-commands-jobs/ )
 proccount=0
@@ -222,12 +224,13 @@ pidlist=''
 for dir in automotive/* consumer/jpeg/jpeg-6a consumer/lame/lame3.70 network/dijkstra network/patricia security/rijndael security/sha telecomm/adpcm/src telecomm/CRC32 telecomm/FFT telecomm/gsm office/stringsearch; do
   proccount=$(($proccount + 1))
   cd "$dir"
-  make > "$MIBENCH_TARGET_DIR"/build.`basename $dir`.log 2>&1 &
-  if [ $? -ne 0 ]; then
-    echo Failure building "$dir", see "$MIBENCH_TARGET_DIR"/build.`basename $dir`.log for more info
-    echo
-    exit 1
-  fi
+  ( make > "$MIBENCH_TARGET_DIR"/build.`basename $dir`.log 2>&1
+    if [ $? -ne 0 ]; then
+      echo Failure building "$dir", see "$MIBENCH_TARGET_DIR"/build.log for more info
+      echo
+      exit 1
+    fi
+  ) &
   cd "$MIBENCH_TARGET_DIR"
   lastpid=${!}
   pidlist=`echo "$pidlist $lastpid" | sed 's/^ *//g'`
@@ -243,6 +246,7 @@ if [ ! -z "$pidlist" ]; then
 fi
 
 cd "$MIBENCH_TARGET_DIR"
+rm -f build.log
 logfiles=`echo *.log`
 head -n 999999 $logfiles > "$MIBENCH_TARGET_DIR"/build.log
 rm $logfiles

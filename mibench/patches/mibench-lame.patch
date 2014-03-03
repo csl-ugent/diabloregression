@@ -1,0 +1,11 @@
+--- mibench/consumer/lame/lame3.70/quantize-pvt.c	2014-02-27 14:45:02.793808916 +0100
++++ mibench/consumer/lame/lame3.70/quantize-pvt.c	2014-02-27 14:45:18.605808798 +0100
+@@ -887,7 +887,7 @@
+ 
+ 
+ 
+-#if (defined(__GNUC__) && defined(__i386__))
++#if (defined(__GNUC__) && defined(__i386__)) && !defined(__clang__)
+ #define USE_GNUC_ASM
+ #endif
+ #ifdef _MSC_VER
