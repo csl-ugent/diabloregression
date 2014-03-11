@@ -3,6 +3,8 @@
 use strict;
 use warnings;
 
+require "functions.pm";
+
 use Data::Dumper;
 use File::Temp qw/ tempfile /;
 
@@ -22,47 +24,7 @@ my ($fh, $fn) = tempfile();
 my $result = `gcc -fpreprocessed -dD -E "$tableFile" > "$fn"`;
 
 ################### READ DECODER TABLE
-my @instructions;
-{
-  my $line;
-  my $linenr = 0;
-
-  while (<$fh>)
-  {
-    # read next line, remove trailing NL
-    $line = $_;
-    chomp $line;
-    $linenr++;
-
-    # skip empty lines
-    next if $line =~ m/^\s*$/;
-
-    # valid line format: "<mnemonic to translate> <resulting mnemonic>"
-    if ($line =~ m/^\s*\{0x([0-f]{8}),\s*0x([0-f]{8}),\s*"([^"]*)",\s*([^\}]*)\},?.*$/i) {
-      my $mask = $1;
-      my $value = $2;
-      my $mnemonic = $3;
-      my $handler = $4;
-
-      if (($mnemonic =~ m/^f/i) and ($handler =~ m/vfp/i) and !($mnemonic =~ m/fstmx|fldmx/i)) {
-        print "Warning: ignoring deprecated floating-point instruction at line $linenr: $line\n";
-
-      } else {
-        push @instructions, { mask => $mask, value => $value, mnemonic => $mnemonic, line => $linenr };
-        
-      }
-
-    } elsif ($line =~ m/^# ([0-9]*)/) {
-      $linenr = 0+$1-1;
-
-    } else {
-      print "Warning: unrecognized text in decoder table file at line $linenr: $line\n";
-
-    }
-  }
-
-  close $fh;
-}
+my @instructions = read_opcodes($fh);
 
 ################### TEST DECODER TABLE
 {
@@ -84,8 +46,8 @@ my @instructions;
 
     if ($fKey != $aKey) {
       print "Error: instruction decoding went wrong!\n";
-      print "  Input: line $instructions[$aKey]{'line'} - {0x$instructions[$aKey]{'mask'}, 0x$instructions[$aKey]{'value'}, \"$instructions[$aKey]{'mnemonic'}\"}\n";
-      print "  Found: line $instructions[$fKey]{'line'} - {0x$instructions[$fKey]{'mask'}, 0x$instructions[$fKey]{'value'}, \"$instructions[$fKey]{'mnemonic'}\"}\n";
+      print "  Input: ",print_opcode(%{$instructions[$aKey]}),"\n";
+      print "  Found: ",print_opcode(%{$instructions[$fKey]}),"\n";
     }
   }
 }

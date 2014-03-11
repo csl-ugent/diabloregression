@@ -125,12 +125,18 @@ my $diabloFile   = $ARGV[1];
 
   #print "Comparing old with new objdump, only looking at V* instructions\n";
   foreach my $oldAddress (keys %oldEncodings) {
+    if (exists $newEncodings{$oldAddress}) {
+    } else {
+      print "Error: address ",sprintf("%08x", $oldAddress)," does not exist in the Diablo output file\n";
+      next;
+    }
+
     my $oldEncoding = $oldEncodings{$oldAddress};
     my $newEncoding = $newEncodings{$oldAddress};
 
     # skip nop's
-    next if ($oldEncoding == 0xe320f000);
-    
+    #next if ($oldEncoding == 0xe320f000);
+
     if ($oldEncoding != $newEncoding) {
       my $oldEncHex = sprintf("%08x", $oldEncoding);
       my $oldAddrHex = sprintf("%08x", $oldAddress);
@@ -138,6 +144,8 @@ my $diabloFile   = $ARGV[1];
       my $diff = printDifference($oldEncoding, $newEncoding);
 
       print "Error: different encodings @ 0x$oldAddrHex: $oldEncHex -> $newEncHex\n$diff\n\n";
+
+      exit;
     }
   }
 }
