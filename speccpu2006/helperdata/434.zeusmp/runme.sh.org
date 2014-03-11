@@ -1,0 +1,2 @@
+#!/bin/sh
+./zeusmp > zeusmp.out 2> zeusmp.err

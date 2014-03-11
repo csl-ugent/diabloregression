@@ -1,0 +1,2 @@
+#!/bin/sh
+./tonto > stdout 2> tonto.err

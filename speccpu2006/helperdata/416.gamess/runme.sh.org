@@ -1,0 +1,2 @@
+#!/bin/sh
+./gamess < exam29.config > exam29.out 2> exam29.err

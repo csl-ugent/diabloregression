@@ -1,0 +1,2 @@
+#!/bin/sh
+./calculix -i beampic > beampic.log 2> beampic.err

@@ -1,0 +1,2 @@
+#!/bin/sh
+./leslie3d < leslie3d.in > leslie3d.stdout 2> leslie3d.err
