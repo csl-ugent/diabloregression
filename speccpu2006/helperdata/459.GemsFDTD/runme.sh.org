@@ -1,2 +1,2 @@
 #!/bin/sh
-./gamess < exam29.conf > exam29.out 2> exam29.err
+./GemsFDTD > ref.out 2> ref.err
