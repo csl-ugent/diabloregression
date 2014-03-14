@@ -211,6 +211,13 @@ if [ ! -z "$CLANG_INSTALLED_DIR" ]; then
   SPEC_OPT_FLAGS="$SPEC_OPT_FLAGS -isysroot $CROSSTOOLS_ROOT/$CROSSTOOLS_PREFIX/sysroot -no-integrated-as -gcc-toolchain $CROSSTOOLS_ROOT -ccc-gcc-name $CROSSTOOLS_PREFIX -target $CROSSTOOLS_PREFIX"
   SPEC_EXCLUDE_BENCHMARKS="^410.bwaves ^416.gamess ^434.zeusmp ^435.gromacs ^436.cactusADM ^437.leslie3d ^454.calculix ^459.GemsFDTD ^465.tonto ^481.wrf"
 else
+  GCCVERSION=`"$CROSSTOOLS_ROOT"/bin/"$CROSSTOOLS_PREFIX"-gcc --version|head -1 |sed -e 's/.* //'`
+  GCCMAJORVERSION=`echo $GCCVERSION | cut -d '.' -f 1`
+  GCCMINORVERSION=`echo $GCCVERSION | cut -d '.' -f 2`
+# see http://gcc.gnu.org/gcc-4.8/changes.html
+  if test "( $GCCMAJORVERSION -gt 4 ) -o ( $GCCMAJORVERSION -eq 4 -a $GCCMINORVERSION -ge 8 )" ; then
+    SPEC_OPT_FLAGS="$SPEC_OPT_FLAGS -fno-aggressive-loop-optimizations"
+  fi
   SED_FILTER_GCC_TO_CLANG="s/willneverexist//"
   SED_FILTER_GPLUSPLUS_TO_CLANG="s/willneverexist//"
   SPEC_EXCLUDE_BENCHMARKS=
