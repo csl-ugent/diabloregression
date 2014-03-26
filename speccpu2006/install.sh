@@ -219,7 +219,7 @@ else
   GCCMAJORVERSION=`echo $GCCVERSION | cut -d '.' -f 1`
   GCCMINORVERSION=`echo $GCCVERSION | cut -d '.' -f 2`
 # see http://gcc.gnu.org/gcc-4.8/changes.html
-  if test "( $GCCMAJORVERSION -gt 4 ) -o ( $GCCMAJORVERSION -eq 4 -a $GCCMINORVERSION -ge 8 )" ; then
+  if test \( $GCCMAJORVERSION -gt 4 \) -o \( $GCCMAJORVERSION -eq 4 -a $GCCMINORVERSION -ge 8 \) ; then
     SPEC_OPT_FLAGS="$SPEC_OPT_FLAGS -fno-aggressive-loop-optimizations"
   fi
   SED_FILTER_GCC_TO_CLANG="s/willneverexist//"
