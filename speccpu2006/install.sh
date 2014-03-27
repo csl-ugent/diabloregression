@@ -15,6 +15,7 @@ Usage: $0 [-n] [-k] [-f <SPEC_ARCHIVE>] [-j <SPEC_PAR_BUILD>] [-O <SPEC_OPT_FLAG
   -f SPEC_ARCHIVE        (opt) Specify the the SPEC_CPU2006 install file (default is CSL one under /afs)
   -j SPEC_PAR_BUILD      (opt) Specify the make -j factor for building the SPEC benchmarks (default: 2)
   -O SPEC_OPT_FLAGS      (opt) Specify optimization flags to compile the benchmarks (default: -O2)
+  -D                     (opt) Link benchmarks dynamically instead of statically
   -d SPEC_TARGET_DIR     (req) Specify the directory where SPEC_CPU2006 should be installed
   -c SPEC_CONFIG_NAME    (req) Specify the name of the SPEC_CPU2006 configuration name to generate (freely chooseable)
   -t CT_INSTALLED_DIR    (req) Specify the directory under which the crosstools have been installed (parameter passed to build.sh of Diablo binutils)
@@ -31,6 +32,7 @@ KEEP_UNPACKED_SPEC=n
 SPEC_ARCHIVE="/afs/elis/group/csl/perflab/benchmarks/SPEC_CPU2006v1.1.tar.bz2"
 SPEC_PARALLEL_BUILD_FACTOR=2
 SPEC_OPT_FLAGS=-O2
+SPEC_LINK_STRATEGY=-static
 
 
 SPEC_INSTALLDIR=
@@ -39,7 +41,7 @@ CROSSTOOLS_INSTALLED_DIR=
 CROSSTOOLS_PREFIX=
 CLANG_INSTALLED_DIR=
 
-while getopts rnkf:j:O:d:c:C:t:p:h\? opt; do
+while getopts rnkf:j:O:Dd:c:C:t:p:h\? opt; do
   case $opt in
     r) ONLY_REBUILD=y
       ;;
@@ -52,6 +54,8 @@ while getopts rnkf:j:O:d:c:C:t:p:h\? opt; do
     j) SPEC_PARALLEL_BUILD_FACTOR="$OPTARG"
       ;;
     O) SPEC_OPT_FLAGS="$OPTARG"
+      ;;
+    D) SPEC_LINK_STRATEGY=-Bdynamic
       ;;
     d) SPEC_INSTALLDIR="$OPTARG"
       ;;
@@ -211,12 +215,19 @@ if [ ! -z "$CLANG_INSTALLED_DIR" ]; then
   SPEC_OPT_FLAGS="$SPEC_OPT_FLAGS -isysroot $CROSSTOOLS_ROOT/$CROSSTOOLS_PREFIX/sysroot -no-integrated-as -gcc-toolchain $CROSSTOOLS_ROOT -ccc-gcc-name $CROSSTOOLS_PREFIX -target $CROSSTOOLS_PREFIX"
   SPEC_EXCLUDE_BENCHMARKS="^410.bwaves ^416.gamess ^434.zeusmp ^435.gromacs ^436.cactusADM ^437.leslie3d ^454.calculix ^459.GemsFDTD ^465.tonto ^481.wrf"
 else
+  GCCVERSION=`"$CROSSTOOLS_ROOT"/bin/"$CROSSTOOLS_PREFIX"-gcc --version|head -1 |sed -e 's/.* //'`
+  GCCMAJORVERSION=`echo $GCCVERSION | cut -d '.' -f 1`
+  GCCMINORVERSION=`echo $GCCVERSION | cut -d '.' -f 2`
+# see http://gcc.gnu.org/gcc-4.8/changes.html
+  if test \( $GCCMAJORVERSION -gt 4 \) -o \( $GCCMAJORVERSION -eq 4 -a $GCCMINORVERSION -ge 8 \) ; then
+    SPEC_OPT_FLAGS="$SPEC_OPT_FLAGS -fno-aggressive-loop-optimizations"
+  fi
   SED_FILTER_GCC_TO_CLANG="s/willneverexist//"
   SED_FILTER_GPLUSPLUS_TO_CLANG="s/willneverexist//"
   SPEC_EXCLUDE_BENCHMARKS=
 fi
 
-sed -e "$SED_FILTER_GCC_TO_CLANG" -e "$SED_FILTER_GPLUSPLUS_TO_CLANG" -e "$SED_FILTER_EXTRA_CROSSTOOLS_PREFIX_DIR" -e "s?DIABLO_SPEC_CONFIG_NAME?$SPEC_CONFIG_NAME?g" -e "s?DIABLO_CROSSTOOLS_INSTALLED_DIR?$CROSSTOOLS_INSTALLED_DIR?g" -e "s?DIABLO_CROSSTOOLS_PREFIX?$CROSSTOOLS_PREFIX?g" -e "s?DIABLO_SPEC_OPTIMIZE_FLAGS?$SPEC_OPT_FLAGS?g" -e "s?SPEC_PARALLEL_BUILD_FACTOR?$SPEC_PARALLEL_BUILD_FACTOR?g"  < "$PATCHES_DIR"/spec_config.patch | patch -p1
+sed -e "s/SPEC_LINK_STRATEGY/$SPEC_LINK_STRATEGY/g" -e "$SED_FILTER_GCC_TO_CLANG" -e "$SED_FILTER_GPLUSPLUS_TO_CLANG" -e "$SED_FILTER_EXTRA_CROSSTOOLS_PREFIX_DIR" -e "s?DIABLO_SPEC_CONFIG_NAME?$SPEC_CONFIG_NAME?g" -e "s?DIABLO_CROSSTOOLS_INSTALLED_DIR?$CROSSTOOLS_INSTALLED_DIR?g" -e "s?DIABLO_CROSSTOOLS_PREFIX?$CROSSTOOLS_PREFIX?g" -e "s?DIABLO_SPEC_OPTIMIZE_FLAGS?$SPEC_OPT_FLAGS?g" -e "s?SPEC_PARALLEL_BUILD_FACTOR?$SPEC_PARALLEL_BUILD_FACTOR?g"  < "$PATCHES_DIR"/spec_config.patch | patch -p1
 
 echo Building SPEC_CPU2006...
 # restore environment to default
