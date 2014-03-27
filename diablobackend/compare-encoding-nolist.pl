@@ -145,7 +145,7 @@ my $diabloFile   = $ARGV[1];
 
       print "Error: different encodings @ 0x$oldAddrHex: $oldEncHex -> $newEncHex\n$diff\n\n";
 
-      exit;
+      #exit;
     }
   }
 }
