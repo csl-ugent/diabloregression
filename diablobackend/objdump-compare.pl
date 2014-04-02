@@ -38,14 +38,10 @@ my $diabloDump = $ARGV[1];
       {
         # ok
       }
-      elsif (($origIns{$address}{opcode} eq 'e320f000') and ($diabloIns{$address}{opcode} eq 'ebffffff'))
-      {
-        # ok: nop's can be replaced by BL's to the next address
-      }
-      elsif (($origIns{$address}{opcode} eq 'e320f000') and ($diabloIns{$address}{opcode} eq 'eaffffff'))
-      {}
-      elsif (($origIns{$address}{opcode} eq 'f3af8000') and ($diabloIns{$address}{opcode} eq 'f000f800'))
-      {}
+      elsif (($origIns{$address}{opcode} eq 'e320f000') and ($diabloIns{$address}{opcode} eq 'ebffffff')) {}
+      elsif (($origIns{$address}{opcode} eq 'e320f000') and ($diabloIns{$address}{opcode} eq 'eaffffff')) {}
+      elsif (($origIns{$address}{opcode} eq 'f3af8000') and ($diabloIns{$address}{opcode} eq 'f000b800')) {} # nop / b.w -> next instruction
+      elsif (($origIns{$address}{opcode} eq 'f3af8000') and ($diabloIns{$address}{opcode} eq 'f000f800')) {} # idem
       else
       {
         print STDERR "Error: instructions in original and Diablo dumps are not equal\n";
