@@ -58,6 +58,7 @@ TARGET_DIR=
 FP_ARCH=
 ARCH_ENDIANESS=le
 WRAPPER=
+WORDSIZE=32
 
 while getopts ns:r:p:b:d:a:e:w:h\? opt; do
   case $opt in
@@ -81,6 +82,15 @@ while getopts ns:r:p:b:d:a:e:w:h\? opt; do
          big) ARCH_ENDIANESS=be
            ;;
          *) echo "Invalid -e value, must be little or big"
+           ;;
+       esac
+      ;;
+    w) case "$OPTARG" in
+         32) WORDSIZE=32
+           ;;
+         64) WORDSIZE=64
+           ;;
+         *) echo "Invalid -w value, must be 32 or 64"
            ;;
        esac
       ;;
@@ -178,6 +188,16 @@ if [ "x${SPEC_COPY_BENCHMARKS}" = xy ]; then
   done
   popd > /dev/null
 
+# wrf needs extra input files
+  pushd . > /dev/null
+  cd "$TARGET_DIR"/481.wrf/inputs
+  for file in "$ARCH_ENDIANESS/$WORDSIZE/*"
+  do
+    cp $file ./
+  done
+  popd > /dev/null
+
+
 #####################
 fi
 
@@ -195,7 +215,7 @@ for dir in "$SPEC_INSTALLED_DIR"/benchspec/CPU2006/*/; do
   fi
 done
 
-# libquantum output file contains crlf, covert
+# libquantum output file contains crlf, convert
 mv "$TARGET_DIR"/462.libquantum/reference/test.out "$TARGET_DIR"/462.libquantum/reference/test.out.org
 tr -d '\r' < "$TARGET_DIR"/462.libquantum/reference/test.out.org > "$TARGET_DIR"/462.libquantum/reference/test.out
 

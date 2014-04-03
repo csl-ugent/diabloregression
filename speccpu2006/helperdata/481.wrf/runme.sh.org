@@ -1,2 +1,2 @@
 #!/bin/sh
-./wrf > rsl.out.0000 2> wrf.err
+./wrf > rsl.out.0000 2>> wrf.err
