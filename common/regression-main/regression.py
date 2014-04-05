@@ -262,6 +262,28 @@ def grep_for_gain(fname):
 
     return gains
 
+###################################################################
+# {{{ find the line beginning with TIME in the given file and print it
+
+def grep_for_times(fname):
+    """open a file and print all lines starting with GAIN"""
+    
+    times = []
+    f = file(fname)
+    foundtimes = 0
+    for line in f:
+        line = line.strip()
+        if line[:4] == "TIME":
+            if line[-1] == "\n": line = line[:-1]
+            print line
+            foundtime = 1
+            times.append(float(line[5:line.find("s")]))
+
+    if not foundtime:
+        print "time not reported"
+
+    return times
+
 # }}}
 
 ###################################################################
@@ -477,7 +499,7 @@ def WriteReport(tests):
 <body>
 Regression run on %s with options <code>%s</code><br>
 <table>
-<tr><th>program</th><th>diablo's exit code</th><th>valid b.out</th><th>code size gain</th><th>total size gain</th></tr>
+<tr><th>program</th><th>diablo's exit code</th><th>valid b.out</th><th>code size gain</th><th>total size gain</th><th>diablo clock wall time</th><th>diablo cpu time</th></tr>
 """ % (time.asctime(time.localtime())," ".join(sys.argv[1:])))
 
     csavg = 0.0
@@ -494,6 +516,15 @@ Regression run on %s with options <code>%s</code><br>
         else:
           csgain = 0.0;
           totgain = 0.0;
+        if len(test["times"]) >= 1:
+            walltime = test["times"][0]
+            if len(test["times"]) > 1:
+                cputime = test["times"][-1]
+            else:
+                cputime = 0.0;
+        else:
+          cputime = 0.0;
+          walltime = 0.0;
         valid = test["validation"]
         if valid:
             nvalids = nvalids + 1
@@ -509,7 +540,9 @@ Regression run on %s with options <code>%s</code><br>
         f.write("<td>%s</td>" % ((do_validation and ((valid and "OK") or "FAILED")) or "N/A"))
         f.write("<td>%f%%</td>" % (csgain))
         f.write("<td>%f%%</td>" % (totgain))
-        f.write("</tr>")
+        f.write("<td>%4.0fs</td>" % (walltime))
+        f.write("<td>%4.0fs</td>" % (cputime))
+        f.write("</tr>\n")
         
     if nvalids > 0:
         csavg = csavg / nvalids
@@ -617,9 +650,11 @@ def main():
                 if test["exitcode"]:
                     print "diablo failed execution: exited with code", test["exitcode"]
                     test["gains"] = [0,0]
+                    test["times"] = [0,0]
                     test["validation"] = 0
                 else:
                     test["gains"] = grep_for_gain(join(test_dir,logfile))
+                    test["times"] = grep_for_times(join(test_dir,logfile))
                     if do_validation:
                         test["validation"] = test_program(test,config)
                         if test["validation"]:
@@ -635,6 +670,7 @@ def main():
             else:
                 test["exitcode"] = 0
                 test["gains"] = [0,0]
+                test["times"] = [0,0]
                 test["validation"] = ExecutePrevious(test,config)
                 if test["validation"]:
                     print "OK"
