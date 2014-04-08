@@ -262,6 +262,8 @@ def grep_for_gain(fname):
 
     return gains
 
+# }}}
+
 ###################################################################
 # {{{ find the line beginning with TIME in the given file and print it
 
