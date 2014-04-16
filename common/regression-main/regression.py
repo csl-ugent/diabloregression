@@ -272,7 +272,7 @@ def grep_for_times(fname):
     
     times = []
     f = file(fname)
-    foundtimes = 0
+    foundtime = 0
     for line in f:
         line = line.strip()
         if line[:4] == "TIME":
