@@ -44,6 +44,7 @@ Usage: $0 [-n] [-s <SSH_PARAS>] [-r <SSH_REMOTE_DIR] -p <SPEC_INSTALLED_DIR> -b 
   -d TARGET_DIR          (req) Directory in which to copy the benchmarks, input/output files and run scripts (e.g. \$HOME/regression/arm/spec2006; will be created if necessary)
   -a FP_ARCH             (req) Floating point arch used, supported options: $OVERRIDES
   -e ARCH_ENDIANESS      (opt) Endianness of the target platform ("little" or "big", default: little)
+  -t BENCH_TIMEOUT       (opt) Kill benchmarks after they've used BENCH_TIMEOUT cpu time (default: none, parameter is passed to "ulimit -t")
   -w WRAPPER             (opt) Wrap execution of remote commands with this wrapper program
   -W WORDSIZE            (opt) Word size of the target architecture in bits (default: 32)
 HELP
@@ -60,8 +61,9 @@ FP_ARCH=
 ARCH_ENDIANESS=le
 WRAPPER=
 WORDSIZE=32
+BENCH_TIMEOUT=
 
-while getopts ns:r:p:b:d:a:e:W:w:h\? opt; do
+while getopts ns:r:p:b:d:a:e:t:W:w:h\? opt; do
   case $opt in
     n) SPEC_COPY_BENCHMARKS=n
       ;;
@@ -85,6 +87,8 @@ while getopts ns:r:p:b:d:a:e:W:w:h\? opt; do
          *) echo "Invalid -e value, must be little or big"
            ;;
        esac
+      ;;
+    t) BENCH_TIMEOUT="ulimit -t $OPTARG &&"
       ;;
     W) case "$OPTARG" in
          32) WORDSIZE=32
@@ -257,7 +261,7 @@ do
 # copy all new files over
      echo 'tar cf - $files | ssh' "$SSH_PARAS" "'cd \"$SSH_REMOTE_DIR\"/$dir && tar xmf -'"
 # extract actual testing commands and prefix them with the ssh command
-     tail -n +2 "$file" | sed -e "s!.*!echo Executing remotely: '&'; ssh $SSH_PARAS \"cd '$SSH_REMOTE_DIR'/$dir \&\& $WRAPPER &\"!"
+     tail -n +2 "$file" | sed -e "s!.*!echo Executing remotely: '&'; ssh $SSH_PARAS \"cd '$SSH_REMOTE_DIR'/$dir \&\& $BENCH_TIMEOUT $WRAPPER &\"!"
 # get the names of the output files that should be checked
      cd `dirname "$file"`/reference
 # grep returns an error if no output
@@ -275,7 +279,7 @@ set -e
        echo "scp $SCP_PARAS:\"${SSH_REMOTE_DIR}\"/$dir/$reffiles" .
      fi
    else
-     tail -n +2 "$file" | sed -e "s!.*!echo Executing: '&' ;$WRAPPER &!"
+     tail -n +2 "$file" | sed -e "s!.*!echo Executing: '&' ; $BENCH_TIMEOUT $WRAPPER &!"
    fi
   ) > "$destfile"
   chmod +x "$destfile"
