@@ -45,6 +45,7 @@ Usage: $0 [-n] [-s <SSH_PARAS>] [-r <SSH_REMOTE_DIR] -p <SPEC_INSTALLED_DIR> -b 
   -a FP_ARCH             (req) Floating point arch used, supported options: $OVERRIDES
   -e ARCH_ENDIANESS      (opt) Endianness of the target platform ("little" or "big", default: little)
   -w WRAPPER             (opt) Wrap execution of remote commands with this wrapper program
+  -W WORDSIZE            (opt) Word size of the target architecture in bits (default: 32)
 HELP
 exit 1
 }
@@ -60,7 +61,7 @@ ARCH_ENDIANESS=le
 WRAPPER=
 WORDSIZE=32
 
-while getopts ns:r:p:b:d:a:e:w:h\? opt; do
+while getopts ns:r:p:b:d:a:e:W:w:h\? opt; do
   case $opt in
     n) SPEC_COPY_BENCHMARKS=n
       ;;
@@ -85,7 +86,7 @@ while getopts ns:r:p:b:d:a:e:w:h\? opt; do
            ;;
        esac
       ;;
-    w) case "$OPTARG" in
+    W) case "$OPTARG" in
          32) WORDSIZE=32
            ;;
          64) WORDSIZE=64
