@@ -88,7 +88,7 @@ while getopts ns:r:p:b:d:a:e:t:W:w:h\? opt; do
            ;;
        esac
       ;;
-    t) BENCH_TIMEOUT="ulimit -t $OPTARG &&"
+    t) BENCH_TIMEOUT="ulimit -t $OPTARG \&\&"
       ;;
     W) case "$OPTARG" in
          32) WORDSIZE=32
