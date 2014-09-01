@@ -264,6 +264,11 @@ cd "$STARTUP_DIR"
 # modify runmescripts for remote execution if necessary
 for file in "$TARGET_DIR"/*/runme_*.sh.org
 do
+  size=`basename $file .sh.org | sed -e 's/^runme_//' -e "s/_.*//"`
+# skip reference scripts if not installed
+  if [ ! -d `dirname "$file"`/reference/$size ]; then
+    continue
+  fi
   dir=`dirname "$file"`
   dir=`basename "$dir"`
   destfile=`dirname "$file"`/`basename "$file" .org`
@@ -279,7 +284,7 @@ do
 # extract actual testing commands and prefix them with the ssh command
      tail -n +2 "$file" | sed -e "s!.*!echo Executing remotely: '&'; ssh $SSH_PARAS \"cd '$SSH_REMOTE_DIR'/$dir \&\& $BENCH_TIMEOUT $WRAPPER &\"!"
 # get the names of the output files that should be checked
-     cd `dirname "$file"`/reference
+     cd `dirname "$file"`/reference/$size
 # grep returns an error if no output
 set +e
      reffiles=`ls -1 | egrep -v '\.out$|\.err$'|tr '\n' ','`
