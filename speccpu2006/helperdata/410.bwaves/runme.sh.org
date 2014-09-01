@@ -1,2 +1,0 @@
-#!/bin/sh
-./bwaves 2> bwaves.err

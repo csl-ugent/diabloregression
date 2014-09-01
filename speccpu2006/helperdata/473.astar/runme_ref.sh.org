@@ -1,0 +1,3 @@
+#!/bin/bash
+./astar BigLakes2048.cfg > BigLakes2048.out 2>> BigLakes2048.err
+./astar rivers.cfg > rivers.out 2>> rivers.err

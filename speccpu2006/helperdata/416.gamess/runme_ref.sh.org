@@ -1,0 +1,4 @@
+#!/bin/bash
+./gamess < cytosine.2.config > cytosine.2.out 2>> cytosine.2.err
+./gamess < h2ocu2+.gradient.config > h2ocu2+.gradient.out 2>> h2ocu2+.gradient.err
+./gamess < triazolium.config > triazolium.out 2>> triazolium.err

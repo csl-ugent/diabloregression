@@ -10,9 +10,9 @@ STARTUP_DIR=`pwd`
 
 # check if we can find our bench helper data
 HELPER_DATA_DIR="$STARTUP_DIR"/helperdata
-if [ ! -f "$HELPER_DATA_DIR"/401.bzip2/runme.sh.org ]; then
+if [ ! -f "$HELPER_DATA_DIR"/401.bzip2/runme_test.sh.org ]; then
   HELPER_DATA_DIR="`dirname \"$0\"`"/helperdata
-  if [ ! -f "$HELPER_DATA_DIR"/401.bzip2/runme.sh.org ]; then
+  if [ ! -f "$HELPER_DATA_DIR"/401.bzip2/runme_test.sh.org ]; then
     echo Cannot find \"helperdata\" directory in the current directory nor in the directory containing this script
     exit 1
   fi
@@ -44,6 +44,7 @@ Usage: $0 [-n] [-s <SSH_PARAS>] [-r <SSH_REMOTE_DIR] -p <SPEC_INSTALLED_DIR> -b 
   -d TARGET_DIR          (req) Directory in which to copy the benchmarks, input/output files and run scripts (e.g. \$HOME/regression/arm/spec2006; will be created if necessary)
   -a FP_ARCH             (req) Floating point arch used, supported options: $OVERRIDES
   -e ARCH_ENDIANESS      (opt) Endianness of the target platform ("little" or "big", default: little)
+  -R                     (opt) also install "reference" spec input/output/config files
   -t BENCH_TIMEOUT       (opt) Kill benchmarks after they've used BENCH_TIMEOUT cpu time (default: none, parameter is passed to "ulimit -t")
   -w WRAPPER             (opt) Wrap execution of remote commands with this wrapper program
   -W WORDSIZE            (opt) Word size of the target architecture in bits (default: 32)
@@ -62,8 +63,9 @@ ARCH_ENDIANESS=le
 WRAPPER=
 WORDSIZE=32
 BENCH_TIMEOUT=
+SIZES="test train"
 
-while getopts ns:r:p:b:d:a:e:t:W:w:h\? opt; do
+while getopts ns:r:p:b:d:a:e:Rt:W:w:h\? opt; do
   case $opt in
     n) SPEC_COPY_BENCHMARKS=n
       ;;
@@ -87,6 +89,8 @@ while getopts ns:r:p:b:d:a:e:t:W:w:h\? opt; do
          *) echo "Invalid -e value, must be little or big"
            ;;
        esac
+      ;;
+    R) SIZES="test train ref"
       ;;
     t) BENCH_TIMEOUT="ulimit -t $OPTARG \&\&"
       ;;
@@ -170,35 +174,40 @@ if [ "x${SPEC_COPY_BENCHMARKS}" = xy ]; then
     benchdir=`basename "$dir"`
     destdir="$TARGET_DIR"/"$benchdir"
     if [ ! -f "$destdir"/input.copied ] ; then
-      mkdir -p "$destdir"/inputs
-      if [ -d "$dir"/data/test/input ] ; then
-        cp -R "$dir"/data/test/input/* "$destdir"/inputs
-      fi
+      mkdir -p "$destdir"/input
       if [ -d "$dir"/data/all/input ] ; then
-        cp -R "$dir"/data/all/input/* "$destdir"/inputs
+        mkdir -p "$destdir"/input/all
+        cp -R "$dir"/data/all/input/* "$destdir"/input/all
       fi
+      for size in $SIZES; do
+        if [ -d "$dir"/data/$size/input ] ; then
+          mkdir -p "$destdir/input/$size"
+          cp -R "$dir"/data/$size/input/* "$destdir"/input/$size
+        fi
+      done
     fi
     touch "$destdir"/input.copied
   done
 
 # sphinx needs an extra file and have its input files renamed
   pushd . > /dev/null
-  cd "$TARGET_DIR"/482.sphinx3/inputs
+  cd "$TARGET_DIR"/482.sphinx3/input
   rm -f ctlfile
-  for file in *."$ARCH_ENDIANESS".raw
+  for file in */*."$ARCH_ENDIANESS".raw
   do
+    DIR=`dirname $file`
     base=`basename $file ."$ARCH_ENDIANESS".raw`
-    mv $file $base.raw
-    echo $base `stat -c %s $base.raw` >> ctlfile
+    mv $file $DIR/$base.raw
+    echo $base `stat -c %s $DIR/$base.raw` >> $DIR/ctlfile
   done
   popd > /dev/null
 
 # wrf needs extra input files
   pushd . > /dev/null
-  cd "$TARGET_DIR"/481.wrf/inputs
-  for file in "$ARCH_ENDIANESS/$WORDSIZE/*"
+  cd "$TARGET_DIR"/481.wrf/input
+  for file in "all/$ARCH_ENDIANESS/$WORDSIZE/*"
   do
-    cp $file ./
+    cp $file all
   done
   popd > /dev/null
 
@@ -212,17 +221,22 @@ for dir in "$SPEC_INSTALLED_DIR"/benchspec/CPU2006/*/; do
   destdir="$TARGET_DIR"/"$benchdir"
   if [ ! -f "$destdir"/output.copied ] ; then
     mkdir -p "$destdir"/reference
-    cp -R "$dir"/data/test/output/* "$destdir"/reference
-# arch-specific overrides
-    if [ -d "$FP_DATA_DIR"/"$benchdir" ]; then
-      cp -R "$FP_DATA_DIR"/"$benchdir"/* "$destdir"/reference
-    fi
+    for size in $SIZES; do
+      mkdir -p "$destdir"/reference/$size
+      cp -R "$dir"/data/"$size"/output/* "$destdir"/reference/"$size"
+  # arch-specific overrides
+      if [ -d "$FP_DATA_DIR"/"$size"/"$benchdir" ]; then
+        cp -R "$FP_DATA_DIR"/"$size"/"$benchdir"/* "$destdir"/reference/"$size"
+      fi
+    done
   fi
 done
 
 # libquantum output file contains crlf, convert
-mv "$TARGET_DIR"/462.libquantum/reference/test.out "$TARGET_DIR"/462.libquantum/reference/test.out.org
-tr -d '\r' < "$TARGET_DIR"/462.libquantum/reference/test.out.org > "$TARGET_DIR"/462.libquantum/reference/test.out
+for size in $SIZES; do
+  mv "$TARGET_DIR"/462.libquantum/reference/$size/$size.out "$TARGET_DIR"/462.libquantum/reference/$size/$size.out.org
+  tr -d '\r' < "$TARGET_DIR"/462.libquantum/reference/$size/$size.out.org > "$TARGET_DIR"/462.libquantum/reference/$size/$size.out
+done
 
 # copy all runscripts and config files
 cd "$HELPER_DATA_DIR"
@@ -230,23 +244,25 @@ for dir in */ ; do
   cp "$dir"/* "$TARGET_DIR"/"$dir"
 done
 
-sed -e "s!TEMPLATE_BASEDIR!$TARGET_DIR!" < spec2006.conf > "$TARGET_DIR"/spec2006.conf
-# filter out benchmarks that weren't compiled from main configfile
-for bench in $MISSING_BENCHMARKS; do
-  benchlinestart=`grep -n $bench "$TARGET_DIR"/spec2006.conf 2>/dev/null | head -n 1 | sed -e 's/:.*//'`
-  if [ ! -z "$benchlinestart" ]; then
-    echo "Removing $bench from config file because it was not compiled (note that clang does not support Fortran benchmarks)"
-    (
-      head -n $(($benchlinestart-1)) < "$TARGET_DIR"/spec2006.conf
-      tail -n +$(($benchlinestart+5)) < "$TARGET_DIR"/spec2006.conf
-    ) > "$TARGET_DIR"/spec2006.conf.new
-    mv "$TARGET_DIR"/spec2006.conf.new "$TARGET_DIR"/spec2006.conf
-  fi
+for conffile in *.conf; do
+  sed -e "s!TEMPLATE_BASEDIR!$TARGET_DIR!" < "$conffile" > "$TARGET_DIR"/"$conffile"
+  # filter out benchmarks that weren't compiled from main configfile
+  for bench in $MISSING_BENCHMARKS; do
+    benchlinestart=`grep -n $bench "$TARGET_DIR"/$conffile 2>/dev/null | head -n 1 | sed -e 's/:.*//'`
+    if [ ! -z "$benchlinestart" ]; then
+      echo "Removing $bench from config file because it was not compiled (note that clang does not support Fortran benchmarks)"
+      (
+        head -n $(($benchlinestart-1)) < "$TARGET_DIR"/$conffile
+        tail -n +$(($benchlinestart+5)) < "$TARGET_DIR"/$conffile
+      ) > "$TARGET_DIR"/$conffile.new
+      mv "$TARGET_DIR"/$conffile.new "$TARGET_DIR"/$conffile.conf
+    fi
+  done
 done
 cd "$STARTUP_DIR"
 
 # modify runmescripts for remote execution if necessary
-for file in "$TARGET_DIR"/*/runme.sh.org
+for file in "$TARGET_DIR"/*/runme_*.sh.org
 do
   dir=`dirname "$file"`
   dir=`basename "$dir"`
@@ -255,7 +271,7 @@ do
    echo '#!/bin/bash'
    if [ x"${SSH_PARAS}" != x ]; then
 # all files to copy (input files have been copied into the main directory by regression.py already)
-     echo 'files=`ls -1 -d *|egrep -v "b\.out|diablo_log|runme*.sh"`'
+     echo 'files=`ls -1 -d *|egrep -v "b\.out|diablo_log|runme.*\.sh"`'
 # delete possible leftovers from a previous test
      echo ssh "$SSH_PARAS" "'mkdir -p \"$SSH_REMOTE_DIR\"/$dir && cd \"$SSH_REMOTE_DIR\"/$dir && rm -rf *'"
 # copy all new files over

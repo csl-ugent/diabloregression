@@ -1,0 +1,2 @@
+#!/bin/bash
+./sjeng train.txt > train.out 2>> train.err

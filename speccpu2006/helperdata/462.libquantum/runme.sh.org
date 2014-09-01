@@ -1,2 +1,0 @@
-#!/bin/sh
-./libquantum 33 5 > test.out 2> test.err

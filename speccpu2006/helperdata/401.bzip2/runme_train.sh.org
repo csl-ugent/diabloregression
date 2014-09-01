@@ -1,0 +1,4 @@
+#!/bin/bash
+./bzip2 input.program 10 > input.program.out 2>> input.program.err
+./bzip2 byoudoin.jpg 5 > byoudoin.jpg.out 2>> byoudoin.jpg.err
+./bzip2 input.combined 80 > input.combined.out 2>> input.combined.err

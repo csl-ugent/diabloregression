@@ -1,0 +1,2 @@
+#!/bin/bash
+./Xalan -v test.xml xalanc.xsl > test.out 2>> test.err

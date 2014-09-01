@@ -1,0 +1,2 @@
+#!/bin/bash
+./calculix -i hyperviscoplastic > hyperviscoplastic.log 2>> hyperviscoplastic.err

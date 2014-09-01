@@ -1,0 +1,2 @@
+#!/bin/bash
+./Xalan -v t5.xml xalanc.xsl > ref.out 2>> ref.err

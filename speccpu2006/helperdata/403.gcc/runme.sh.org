@@ -1,2 +1,0 @@
-#!/bin/sh
-./gcc cccp.i -o cccp.s > cccp.out 2> cccp.err

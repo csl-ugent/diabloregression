@@ -1,0 +1,2 @@
+#!/bin/bash
+./GemsFDTD > test.log 2>> test.err

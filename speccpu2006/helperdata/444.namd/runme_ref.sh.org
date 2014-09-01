@@ -1,0 +1,2 @@
+#!/bin/bash
+./namd --input namd.input --iterations 38 --output namd.out > namd.stdout 2>> namd.err

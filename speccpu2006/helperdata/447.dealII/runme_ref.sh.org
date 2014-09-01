@@ -1,0 +1,2 @@
+#!/bin/bash
+./dealII 23 > log 2>> dealII.err

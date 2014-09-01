@@ -1,0 +1,2 @@
+#!/bin/bash
+./calculix -i stairs > stairs.log 2>> stairs.err

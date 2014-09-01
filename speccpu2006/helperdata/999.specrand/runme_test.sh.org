@@ -1,0 +1,2 @@
+#!/bin/bash
+./specrand 324342 24239 > rand.24239.out 2>> rand.24239.err

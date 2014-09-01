@@ -1,0 +1,2 @@
+#!/bin/bash
+./gromacs -silent -deffnm gromacs -nice 0 2>> gromacs.err

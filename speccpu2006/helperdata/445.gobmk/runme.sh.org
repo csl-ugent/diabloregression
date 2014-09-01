@@ -1,8 +1,0 @@
-#!/bin/sh
-./gobmk --quiet --mode gtp < capture.tst > capture.out 2> capture.err
-./gobmk --quiet --mode gtp < connect.tst > connect.out 2> connect.err
-./gobmk --quiet --mode gtp < connect_rot.tst > connect_rot.out 2> connect_rot.err
-./gobmk --quiet --mode gtp < connection.tst > connection.out 2> connection.err
-./gobmk --quiet --mode gtp < connection_rot.tst > connection_rot.out 2> connection_rot.err
-./gobmk --quiet --mode gtp < cutstone.tst > cutstone.out 2> cutstone.err
-./gobmk --quiet --mode gtp < dniwog.tst > dniwog.out 2> dniwog.err

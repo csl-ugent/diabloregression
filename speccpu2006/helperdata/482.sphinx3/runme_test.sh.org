@@ -1,0 +1,2 @@
+#!/bin/bash
+./sphinx_livepretend ctlfile . args.an4 > an4.log 2>> an4.err

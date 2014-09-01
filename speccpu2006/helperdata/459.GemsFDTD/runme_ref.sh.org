@@ -1,0 +1,2 @@
+#!/bin/bash
+./GemsFDTD > ref.log 2>> ref.err

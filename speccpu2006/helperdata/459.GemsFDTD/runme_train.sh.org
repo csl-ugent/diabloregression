@@ -1,0 +1,2 @@
+#!/bin/bash
+./GemsFDTD > train.log 2>> train.err
