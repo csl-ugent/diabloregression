@@ -272,17 +272,27 @@ do
   dir=`dirname "$file"`
   dir=`basename "$dir"`
   destfile=`dirname "$file"`/`basename "$file" .org`
+  helperfile=`dirname "$file"`/do_`basename "$file" .org`
+# extract actual testing commands and put them in a separate script for timing
+  echo '#!/bin/bash' > "$helperfile"
+  tail -n +2 "$file" | sed -e "s!.*! $BENCH_TIMEOUT $WRAPPER &!" >> "$helperfile"
+  chmod +x "$helperfile"
   (
    echo '#!/bin/bash'
    if [ x"${SSH_PARAS}" != x ]; then
 # all files to copy (input files have been copied into the main directory by regression.py already)
-     echo 'files=`ls -1 -d *|egrep -v "b\.out|diablo_log|runme.*\.sh"`'
+     echo 'files=`ls -1 -d *|egrep -v "b\.out|diablo_log|^runme.*\.sh"`'
 # delete possible leftovers from a previous test
      echo ssh "$SSH_PARAS" "'mkdir -p \"$SSH_REMOTE_DIR\"/$dir && cd \"$SSH_REMOTE_DIR\"/$dir && rm -rf *'"
 # copy all new files over
-     echo 'tar cf - $files | ssh' "$SSH_PARAS" "'cd \"$SSH_REMOTE_DIR\"/$dir && tar xmf -'"
+     echo 'tar cf - $files | ssh' "$SSH_PARAS" "'cd \"$SSH_REMOTE_DIR\"/$dir && tar xmpf -'"
 # extract actual testing commands and prefix them with the ssh command
-     tail -n +2 "$file" | sed -e "s!.*!echo Executing remotely: '&'; ssh $SSH_PARAS \"cd '$SSH_REMOTE_DIR'/$dir \&\& $BENCH_TIMEOUT $WRAPPER &\"!"
+     echo "dotime=0"
+     echo 'if [ $# -eq 1 ]; then'
+     echo "   echo Executing remotely: "./`basename $helperfile`"; ssh $SSH_PARAS \"cd '$SSH_REMOTE_DIR'/$dir && /usr/bin/time -o benchtime.out -f '%S\n%U' ./"`basename $helperfile`"\""
+     echo "else"
+     tail -n +2 "$file" | sed -e "s!.*!  echo Executing remotely: '&'; ssh $SSH_PARAS \"cd '$SSH_REMOTE_DIR'/$dir \&\& $BENCH_TIMEOUT $WRAPPER &\"!"
+     echo "fi"
 # get the names of the output files that should be checked
      cd `dirname "$file"`/reference/$size
 # grep returns an error if no output
@@ -300,7 +310,12 @@ set -e
        echo "scp $SCP_PARAS:\"${SSH_REMOTE_DIR}\"/$dir/$reffiles" .
      fi
    else
-     tail -n +2 "$file" | sed -e "s!.*!echo Executing: '&' ; $BENCH_TIMEOUT $WRAPPER &!"
+     echo 'if [ $# -eq 1 ]; then'
+     echo "  echo Executing: ./"`basename $helperfile`
+     echo "  /usr/bin/time -o benchtime.out -f '%S\n%U' ./"`basename $helperfile`
+     echo "else"
+     tail -n +2 "$file" | sed -e "s!.*!  echo Executing: '&' ; $BENCH_TIMEOUT $WRAPPER &!"
+     echo "fi"
    fi
   ) > "$destfile"
   chmod +x "$destfile"

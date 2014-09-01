@@ -134,6 +134,8 @@ for BENCHDIR in $BENCHMARKS; do
         fi
       done
     fi
+    # for timing
+    INPUTFILES="$INPUTFILES do_runme_$SIZE.sh"
 #    echo "  dir: $BENCHDIR"
 #    echo "  inputfiles: $INPUTFILES"
 #    echo "  inputdirs: $INPUTDIRS"

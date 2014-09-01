@@ -22,6 +22,7 @@ binsearch_max = 0
 binsearch_logs = 0
 report = 0
 report_file = "report.html"
+do_time = 0
 start_dir = os.getcwd()
 do_fresh_checkout = 0
 makefile = "Makefile.ppc64"
@@ -216,7 +217,12 @@ def test_program(prog,conf):
                 shutil.copytree(resolve(ind,prog), join(test_dir,leaf(ind)))
 
         # execute the run script
-        os.spawnl(os.P_WAIT,"/bin/sh","sh",join(test_dir,os.path.basename(conf["runscript"])))
+        scriptcmdline = join(test_dir,os.path.basename(conf["runscript"]))
+        if do_time:
+            os.spawnl(os.P_WAIT,"/bin/sh","sh",scriptcmdline,"1")
+        else:
+            os.spawnl(os.P_WAIT,"/bin/sh","sh",scriptcmdline)
+
         
         # compare the output files
         refdir = resolve(conf["referencedir"], prog)
@@ -264,6 +270,24 @@ def grep_for_gain(fname):
 
 # }}}
 
+
+###################################################################
+# {{{ read the time used to execute the benchmark
+def read_bench_times(fname):
+    benchtimes = []
+
+    try:
+        f = file(fname,"r")
+        for line in f:
+          benchtimes.append(float(line))
+    except IOError:
+        print "Could not open ",fname," for reading"
+        return [0,0]
+    print "Benchmark system time: ", benchtimes[0]
+    print "Benchmark user   time: ", benchtimes[1]
+    return benchtimes
+# }}}
+
 ###################################################################
 # {{{ find the line beginning with TIME in the given file and print it
 
@@ -303,6 +327,7 @@ def PrintUsage():
     [-B|--binary-search-with-logs <mc>]   (idem as -b, but rerun Diablo on last bad/good with -v -v -v)
     [-r|--report]                         (generate report.html with test results) (default: disabled)
     [-R|--report-file <file>]             (generate <file> with test results in html) (default: disabled)
+    [-i|--time]                           (time the execution of rewritten binaries)
     [-m|--measure-only]                   (only process tests with diablo, do not try to run them) (default: do run tests)
     [-f|--fresh-checkout <makefile>]      (check out and build diablo using makefile instead of using the one specified via -d/-p) (default: disabled)
     [-k|--keep-optimized]                 (do not delete processed tests after testing) (default: delete them)
@@ -319,10 +344,10 @@ def PrintUsage():
 # {{{ parse the command line arguments 
 def parse_args():
     """parse the command line arguments"""
-    global config_file, diablo_dir, diablo_opts, diablo_prog, do_validation, post_run, binsearch_max, binsearch_logs, report, report_file, do_fresh_checkout, makefile, keep_optimized, keep_suffix, test_dir, exec_previous
+    global config_file, diablo_dir, diablo_opts, diablo_prog, do_validation, post_run, binsearch_max, binsearch_logs, report, report_file, do_time, do_fresh_checkout, makefile, keep_optimized, keep_suffix, test_dir, exec_previous
 
-    short_opts = "c:d:o:p:x:b:B:R:rmf:kK:tT:X:"
-    long_opts = ["config=","diablo-dir=","diablo-opts=","measure-only","diablo-executable=","post-exec=","binary-search=","--binary-search-with-log","report","report-file=","fresh-checkout=","keep-optimized","keep-with-suffix=","temp-test-dir","test-dir=","exec-previous="]
+    short_opts = "c:d:o:p:x:b:B:R:irmf:kK:tT:X:"
+    long_opts = ["config=","diablo-dir=","diablo-opts=","measure-only","diablo-executable=","post-exec=","binary-search=","--binary-search-with-log","report","report-file=","--time","fresh-checkout=","keep-optimized","keep-with-suffix=","temp-test-dir","test-dir=","exec-previous="]
 
     try:
         opts, args = getopt(sys.argv[1:],short_opts,long_opts);
@@ -352,6 +377,8 @@ def parse_args():
         elif opt == "-R" or opt == "--report-file":
             report = 1
             report_file = arg
+        elif opt == "-i" or opt == "--time":
+            do_time = 1
         elif opt == "-f" or opt == "--fresh-checkout":
             do_fresh_checkout = 1
             makefile = arg
@@ -501,7 +528,7 @@ def WriteReport(tests):
 <body>
 Regression run on %s with options <code>%s</code><br>
 <table>
-<tr><th>program</th><th>diablo's exit code</th><th>valid b.out</th><th>code size gain</th><th>total size gain</th><th>diablo clock wall time</th><th>diablo cpu time</th></tr>
+<tr><th>program</th><th>diablo's exit code</th><th>valid b.out</th><th>code size gain</th><th>total size gain</th><th>diablo clock wall time</th><th>diablo cpu time</th><th>program sys time</th><program cpu time</th></tr>
 """ % (time.asctime(time.localtime())," ".join(sys.argv[1:])))
 
     csavg = 0.0
@@ -527,6 +554,12 @@ Regression run on %s with options <code>%s</code><br>
         else:
           cputime = 0.0;
           walltime = 0.0;
+        if len(test["benchtimes"]) >= 1:
+            benchsystime = test["benchtimes"][0]
+            benchcputime = test["benchtimes"][1]
+        else:
+            benchsystime = 0.0
+            benchcputime = 0.0
         valid = test["validation"]
         if valid:
             nvalids = nvalids + 1
@@ -544,6 +577,8 @@ Regression run on %s with options <code>%s</code><br>
         f.write("<td>%f%%</td>" % (totgain))
         f.write("<td>%4.0fs</td>" % (walltime))
         f.write("<td>%4.0fs</td>" % (cputime))
+        f.write("<td>%4.2fs</td>" % (benchsystime))
+        f.write("<td>%4.2fs</td>" % (benchcputime))
         f.write("</tr>\n")
         
     if nvalids > 0:
@@ -653,17 +688,25 @@ def main():
                     print "diablo failed execution: exited with code", test["exitcode"]
                     test["gains"] = [0,0]
                     test["times"] = [0,0]
+                    test["benchtimes"] = [0,0]
                     test["validation"] = 0
                 else:
                     test["gains"] = grep_for_gain(join(test_dir,logfile))
                     test["times"] = grep_for_times(join(test_dir,logfile))
+
                     if do_validation:
                         test["validation"] = test_program(test,config)
                         if test["validation"]:
                             print "OK"
+                            if do_time:
+                              test["benchtimes"] = read_bench_times(join(test_dir,"benchtime.out"))
+                            else:
+                              test["benchtimes"] = [0,0]
                         else:
                             print "FAILED"
+                            test["benchtimes"] = [0,0]
                     else:
+                        test["benchtimes"] = [0,0]
                         test["validation"] = 1
 
                     if keep_optimized:
@@ -673,6 +716,7 @@ def main():
                 test["exitcode"] = 0
                 test["gains"] = [0,0]
                 test["times"] = [0,0]
+                test["benchtimes"] = [0,0]
                 test["validation"] = ExecutePrevious(test,config)
                 if test["validation"]:
                     print "OK"
