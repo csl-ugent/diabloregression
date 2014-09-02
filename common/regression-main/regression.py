@@ -20,6 +20,10 @@ post_run = ""
 do_validation = 1
 binsearch_max = 0
 binsearch_logs = 0
+generate_profile = 0
+generate_profile_obj = ""
+use_profile = 0
+profile_dir = ""
 report = 0
 report_file = "report.html"
 do_time = 0
@@ -218,12 +222,8 @@ def test_program(prog,conf):
 
         # execute the run script
         scriptcmdline = join(test_dir,os.path.basename(conf["runscript"]))
-        if do_time:
-            os.spawnl(os.P_WAIT,"/bin/sh","sh",scriptcmdline,"1")
-        else:
-            os.spawnl(os.P_WAIT,"/bin/sh","sh",scriptcmdline)
+        os.spawnl(os.P_WAIT,"/bin/sh","sh",scriptcmdline,str(do_time),str(generate_profile))
 
-        
         # compare the output files
         refdir = resolve(conf["referencedir"], prog)
         outfiles = conf["outputfiles"].split()
@@ -325,6 +325,9 @@ def PrintUsage():
     [-x|--post-exec <post-run command>]   (command to run after the diablo processing and testing of a program is finished) (default: none)
     [-b|--binary-search <max count>]      (look for debugcounter value where test fails; <max count>+1 should be known to fail)
     [-B|--binary-search-with-logs <mc>]   (idem as -b, but rerun Diablo on last bad/good with -v -v -v)
+    [-g|--generate-profile <obj> ]        (profile the rewritten binary, link <obj> for support via diablo -SP parameter) (default: don't profile)
+    [-P|--use-profile ]                   (rewrite the binary using an existing profile generated via the -p option) (default: don't use profiling information)
+    [--profile-directory <dir> ]          (with -p, put, and with -P, get, the profile information under <dir>) (default: nothing)
     [-r|--report]                         (generate report.html with test results) (default: disabled)
     [-R|--report-file <file>]             (generate <file> with test results in html) (default: disabled)
     [-i|--time]                           (time the execution of rewritten binaries)
@@ -344,10 +347,10 @@ def PrintUsage():
 # {{{ parse the command line arguments 
 def parse_args():
     """parse the command line arguments"""
-    global config_file, diablo_dir, diablo_opts, diablo_prog, do_validation, post_run, binsearch_max, binsearch_logs, report, report_file, do_time, do_fresh_checkout, makefile, keep_optimized, keep_suffix, test_dir, exec_previous
+    global config_file, diablo_dir, diablo_opts, diablo_prog, do_validation, post_run, binsearch_max, binsearch_logs, generate_profile, generate_profile_obj, use_profile, profile_dir, report, report_file, do_time, do_fresh_checkout, makefile, keep_optimized, keep_suffix, test_dir, exec_previous
 
-    short_opts = "c:d:o:p:x:b:B:R:irmf:kK:tT:X:"
-    long_opts = ["config=","diablo-dir=","diablo-opts=","measure-only","diablo-executable=","post-exec=","binary-search=","--binary-search-with-log","report","report-file=","--time","fresh-checkout=","keep-optimized","keep-with-suffix=","temp-test-dir","test-dir=","exec-previous="]
+    short_opts = "c:d:o:p:x:b:B:g:PR:irmf:kK:tT:X:"
+    long_opts = ["config=","diablo-dir=","diablo-opts=","measure-only","diablo-executable=","post-exec=","binary-search=","binary-search-with-log","generate-profile=","use-profile","profile-directory=","report","report-file=","time","fresh-checkout=","keep-optimized","keep-with-suffix=","temp-test-dir","test-dir=","exec-previous="]
 
     try:
         opts, args = getopt(sys.argv[1:],short_opts,long_opts);
@@ -372,6 +375,13 @@ def parse_args():
         elif opt == "-B" or opt == "--binary-search-with-log":
             binsearch_max = int(arg)
             binsearch_logs = 1
+        elif opt == "-g" or opt == "--generate-profile":
+            generate_profile = 1
+            generate_profile_obj = arg
+        elif opt == "-P" or opt == "--use-profile":
+            use_profile = 1
+        elif opt == "--profile-directory":
+            profile_dir = arg
         elif opt == "-r" or opt == "--report":
             report = 1
         elif opt == "-R" or opt == "--report-file":
@@ -431,6 +441,68 @@ def parse_args():
     
 # }}}
 
+
+###################################################################
+# {{{ check whether a program is in the path and executable,
+#     from http://stackoverflow.com/questions/377017/test-if-executable-exists-in-python/377028#377028
+def which(program):
+    import os
+    def is_exe(fpath):
+        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+    fpath, fname = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            path = path.strip('"')
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return exe_file
+
+    return None
+
+###################################################################
+# {{{ check completeness/consistency of profiling options
+
+def check_profile_options(tests):
+    if generate_profile or use_profile:
+        if (profile_dir == "") or not os.path.isdir(profile_dir):
+            print "Invalid or unspecified profile base directory, specify using --profile-dir"
+            sys.exit(-1)
+    if generate_profile and use_profile:
+        print "Cannot both use and generate profiling information at the same time"
+        sys.exit(-1)
+    if generate_profile:
+        if do_time:
+            print "Cannot both generate profile information and time the benchmark execution"
+            sys.exit(-1)
+        if not os.path.isfile(generate_profile_obj):
+            print "Cannot find object file '",generate_profile_obj,"' to link in for profiling"
+            sys.exit(-1)
+        if which("merge_profiles.py") == None:
+            print "Cannot find merge_profiles.py in the path or it is not executable"
+            sys.exit(-1)
+        if which("binary_profile_to_plaintext.py") == None:
+            print "Cannot find binary_profile_to_plaintext.py in the path or it is not executable"
+            sys.exit(-1)
+    if use_profile:
+        for test in tests:
+          if not os.path.isfile(join(profile_dir,test["executable"],"bbprofile")):
+            print "Cannot find profile ",join(profile_dir,test["executable"],"bbprofile")
+            sys.exit(-1)
+# }}}
+
+
+
+###################################################################
+# {{{ make a directory if it doesn't exit yet
+def mkdir(path):
+        if not os.path.exists(path):
+                os.makedirs(path)
+# }}}
+
 ###################################################################
 # {{{ construct command line and run diablo
 def run_diablo(test,logfile=None,extra_opts=""):
@@ -444,6 +516,10 @@ def run_diablo(test,logfile=None,extra_opts=""):
     commandline = commandline + " -O "+test["objpath"]+" -L "+test["libpath"]
     commandline = commandline + " " + diablo_opts + " " + extra_opts
     commandline = commandline + " " + test["executable"]
+    if generate_profile:
+      commandline = commandline + " -SP " + generate_profile_obj
+    if use_profile:
+      commandline = commandline + " --rawprofiles off -pb " + join(profile_dir,test["executable"],"bbprofile")
     commandline = commandline + " >" + logfile + " 2>/dev/null"
     print "Executing: ", commandline
     exitcode = os.system(commandline)
@@ -653,7 +729,8 @@ def ExecutePrevious(test,config):
 def main():
     print "regression test for diablo..."
 
-    tests = parse_args() 
+    tests = parse_args()
+    check_profile_options(tests)
     #print "config file:", config_file
     #print "diablo dir :", diablo_dir
     #print "diablo opts:", diablo_opts
@@ -702,6 +779,18 @@ def main():
                               test["benchtimes"] = read_bench_times(join(test_dir,"benchtime.out"))
                             else:
                               test["benchtimes"] = [0,0]
+
+                            if generate_profile:
+                                if not os.path.isfile(join(test_dir,"mergedbinprofile")):
+                                    print "Cannot find generated profile at ", join(test_dir,"mergedbinprofile")
+                                else:
+                                   try:
+                                       mkdir(join(profile_dir, test["executable"])) 
+                                       os.system(which("binary_profile_to_plaintext.py")+" "+join(test_dir,"mergedbinprofile") + " > " + join(test_dir,"mergedplaintextprofile"))
+                                       os.system(which("merge_profiles.py")+" "+join(test_dir,"mergedplaintextprofile")+" > "+join(profile_dir,test["executable"],"bbprofile"))
+                                   except Exception, e:
+                                      print "Exception", e
+
                         else:
                             print "FAILED"
                             test["benchtimes"] = [0,0]
