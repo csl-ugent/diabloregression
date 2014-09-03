@@ -287,11 +287,19 @@ do
 # copy all new files over
      echo 'tar cf - $files | ssh' "$SSH_PARAS" "'cd \"$SSH_REMOTE_DIR\"/$dir && tar xmpf -'"
 # extract actual testing commands and prefix them with the ssh command
-     echo "dotime=0"
-     echo 'if [ $# -eq 1 ]; then'
+     echo 'dotime=$1'
+     echo 'collectprofile=$2'
+     echo "SAVEPROFILECMD="
+     echo "SCPPROFILEFILE="
+     echo "rm -f mergedbinprofile"
+     echo 'if [ $collectprofile -eq 1 ]; then'
+     echo '  SAVEPROFILECMD="&& cat profiling_section.* >> mergedbinprofile"'
+     echo '  SCPPROFILEFILE=",mergedbinprofile"'
+     echo 'fi'
+     echo 'if [ $dotime -eq 1 ]; then'
      echo "   echo Executing remotely: "./`basename $helperfile`"; ssh $SSH_PARAS \"cd '$SSH_REMOTE_DIR'/$dir && /usr/bin/time -o benchtime.out -f '%S\n%U' ./"`basename $helperfile`"\""
      echo "else"
-     tail -n +2 "$file" | sed -e "s!.*!  echo Executing remotely: '&'; ssh $SSH_PARAS \"cd '$SSH_REMOTE_DIR'/$dir \&\& $BENCH_TIMEOUT $WRAPPER &\"!"
+     tail -n +2 "$file" | sed -e "s!.*!  echo Executing remotely: '&'; ssh $SSH_PARAS \"cd '$SSH_REMOTE_DIR'/$dir \&\& $BENCH_TIMEOUT $WRAPPER & \$SAVEPROFILECMD\"!"
      echo "fi"
 # get the names of the output files that should be checked
      cd `dirname "$file"`/reference/$size
@@ -304,17 +312,21 @@ set -e
 # add command to copy the output files back to this machine
      SCP_PARAS=`echo $SSH_PARAS | sed -e 's!-p *\([^ \t][^ \t]*\)!-P \1!'`
 # curly brances are only expanded if there's at least one comma :/
-     if [[ "$reffiles" =~ .*,.* ]]; then
-       echo "scp $SCP_PARAS:\"${SSH_REMOTE_DIR}\"/$dir/{"$reffiles"}" .
-     else
-       echo "scp $SCP_PARAS:\"${SSH_REMOTE_DIR}\"/$dir/$reffiles" .
-     fi
+     echo "scp $SCP_PARAS:\"${SSH_REMOTE_DIR}\"/$dir/{"${reffiles}\$\{SCPPROFILEFILE\}"}" .
    else
-     echo 'if [ $# -eq 1 ]; then'
+     echo 'dotime=$1'
+     echo 'collectprofile=$2'
+     echo "SAVEPROFILECMD="
+     echo "rm -f mergedbinprofile"
+     echo 'if [ $collectprofile -eq 1 ]; then'
+     echo '  SAVEPROFILECMD="&& cat profiling_section.* >> mergedbinprofile"'
+     echo 'fi'
+     echo 'if [ $dotime -eq 1 ]; then'
      echo "  echo Executing: ./"`basename $helperfile`
      echo "  /usr/bin/time -o benchtime.out -f '%S\n%U' ./"`basename $helperfile`
      echo "else"
-     tail -n +2 "$file" | sed -e "s!.*!  echo Executing: '&' ; $BENCH_TIMEOUT $WRAPPER &!"
+# the eval to make sure the shell interprets the && from the SAVEPROFILECMD variable
+     tail -n +2 "$file" | sed -e "s!.*!  echo Executing: '&' ; eval $BENCH_TIMEOUT $WRAPPER & \$SAVEPROFILECMD!"
      echo "fi"
    fi
   ) > "$destfile"
