@@ -255,7 +255,7 @@ for conffile in *.conf; do
         head -n $(($benchlinestart-1)) < "$TARGET_DIR"/$conffile
         tail -n +$(($benchlinestart+5)) < "$TARGET_DIR"/$conffile
       ) > "$TARGET_DIR"/$conffile.new
-      mv "$TARGET_DIR"/$conffile.new "$TARGET_DIR"/$conffile.conf
+      mv "$TARGET_DIR"/$conffile.new "$TARGET_DIR"/$conffile
     fi
   done
 done
