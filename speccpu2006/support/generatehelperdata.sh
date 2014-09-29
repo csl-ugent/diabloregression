@@ -156,8 +156,17 @@ for BENCHDIR in $BENCHMARKS; do
     ) > "$HELPERBASEDIR/regression_${SIZE}".conf
     # add entry to the main regression configuration file
     (
-      echo
-      echo $BENCHNAME
+      echo ""
+      case $BENCHNAME in
+        sphinx3)
+          echo "sphinx_livepretend"
+          ;;
+        xalancbmk)
+          echo "Xalan"
+          ;;
+        *)
+          echo $BENCHNAME
+      esac
       echo $BENCHDIR
       echo $BENCHDIR
       echo regression_${SIZE}.conf
