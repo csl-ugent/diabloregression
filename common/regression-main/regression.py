@@ -469,7 +469,7 @@ def which(program):
 def check_profile_options(tests):
     if generate_profile or use_profile:
         if (profile_dir == "") or not os.path.isdir(profile_dir):
-            print "Invalid or unspecified profile base directory, specify using --profile-dir"
+            print "Invalid or unspecified profile base directory (",profile_dir,"), specify using --profile-directory"
             sys.exit(-1)
     if generate_profile and use_profile:
         print "Cannot both use and generate profiling information at the same time"
