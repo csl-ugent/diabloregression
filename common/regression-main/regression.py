@@ -327,7 +327,7 @@ def PrintUsage():
     [-B|--binary-search-with-logs <mc>]   (idem as -b, but rerun Diablo on last bad/good with -v -v -v)
     [-g|--generate-profile <obj> ]        (profile the rewritten binary, link <obj> for support via diablo -SP parameter) (default: don't profile)
     [-P|--use-profile ]                   (rewrite the binary using an existing profile generated via the -p option) (default: don't use profiling information)
-    [--profile-directory <dir> ]          (with -p, put, and with -P, get, the profile information under <dir>) (default: nothing)
+    [--profile-directory <dir> ]          (with -g, put, and with -P, get, the profile information under <dir>) (default: nothing)
     [-r|--report]                         (generate report.html with test results) (default: disabled)
     [-R|--report-file <file>]             (generate <file> with test results in html) (default: disabled)
     [-i|--time]                           (time the execution of rewritten binaries)
