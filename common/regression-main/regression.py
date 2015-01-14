@@ -327,7 +327,7 @@ def PrintUsage():
     [-B|--binary-search-with-logs <mc>]   (idem as -b, but rerun Diablo on last bad/good with -v -v -v)
     [-g|--generate-profile <obj> ]        (profile the rewritten binary, link <obj> for support via diablo -SP parameter) (default: don't profile)
     [-P|--use-profile ]                   (rewrite the binary using an existing profile generated via the -p option) (default: don't use profiling information)
-    [--profile-directory <dir> ]          (with -p, put, and with -P, get, the profile information under <dir>) (default: nothing)
+    [--profile-directory <dir> ]          (with -g, put, and with -P, get, the profile information under <dir>) (default: nothing)
     [-r|--report]                         (generate report.html with test results) (default: disabled)
     [-R|--report-file <file>]             (generate <file> with test results in html) (default: disabled)
     [-i|--time]                           (time the execution of rewritten binaries)
@@ -469,7 +469,7 @@ def which(program):
 def check_profile_options(tests):
     if generate_profile or use_profile:
         if (profile_dir == "") or not os.path.isdir(profile_dir):
-            print "Invalid or unspecified profile base directory, specify using --profile-dir"
+            print "Invalid or unspecified profile base directory (",profile_dir,"), specify using --profile-directory"
             sys.exit(-1)
     if generate_profile and use_profile:
         print "Cannot both use and generate profiling information at the same time"
