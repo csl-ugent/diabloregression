@@ -107,6 +107,13 @@ for BENCHDIR in $BENCHMARKS; do
     # extract the output files from the lines like (get last word and remove '.cmp'):
     #   specperl /home/jmaebe/diablo/spec2006inst/bin/specdiff -m -l 10  --floatcompare /home/jmaebe/diablo/spec2006inst/benchspec/CPU2006/999.specrand/data/test/output/rand.24239.out rand.24239.out > rand.24239.out.cmp
     OUTPUTFILES=`echo $OUTPUT | sed -e 's/.*%% Fake commands from compare_run\(.*\)End of fake output from compare_run.*/\1/' | tr '&' '\n'|grep 'specdiff' | sed -e 's+.* ++' -e 's+\.cmp$++' | tr '\n' ' '`
+
+    OUTPUTCOMPARECOMMANDS=`echo $OUTPUT | sed -e 's/.*%% Fake commands from compare_run\(.*\)End of fake output from compare_run.*/\1/' | tr '&' '\n' | grep 'specdiff' | tr '\n' '&'`
+    OUTPUTCOMPARECOMMANDS=`echo $OUTPUTCOMPARECOMMANDS | sed -e 's+/[^&]*specdiff+\$spec_install_dir/bin/specdiff+g'`
+    OUTPUTCOMPARECOMMANDS=`echo $OUTPUTCOMPARECOMMANDS | sed -e 's@\s/\S*/output/\(\S*\)@ $refdir/\1@g'`
+    OUTPUTCOMPARECOMMANDS=`echo $OUTPUTCOMPARECOMMANDS | sed -e 's@\s\(\S*\) > \(\S*\)@ $testdir/\1 | egrep -v "^specdiff run completed$" > $testdir/\2@g'`
+    OUTPUTCOMPARECOMMANDS=`echo $OUTPUTCOMPARECOMMANDS | tr '&' '\n'`
+
     # collect the input files
     INPUTDIRS="$BASEINPUTDIRS"
     INPUTFILES="$BASEINPUTFILES"
@@ -134,6 +141,27 @@ for BENCHDIR in $BENCHMARKS; do
         fi
       done
     fi
+
+    (
+      echo '#!/bin/bash'
+      echo "refdir=\$1"
+      echo "testdir=\$2"
+      echo "spec_install_dir=VAR_SPEC_INSTALL_DIRECTORY"
+      echo "cd \$spec_install_dir"
+      echo "source ./shrc"
+      echo "cd -"
+      echo "$OUTPUTCOMPARECOMMANDS"
+      echo "exitcode=0"
+      echo "for i in $OUTPUTFILES; do"
+      echo "  if [[ -s \$testdir/\$i.cmp ]]; then"
+      echo "    echo \"Output file \$i differs\""
+      echo "    exitcode=1"
+      echo "  fi"
+      echo "done"
+      echo "exit \$exitcode"
+      echo ""
+    ) > "$HELPERBASEDIR"/compare_${SIZE}.sh
+
     # for timing
     INPUTFILES="$INPUTFILES do_runme_$SIZE.sh"
 #    echo "  dir: $BENCHDIR"
@@ -153,6 +181,7 @@ for BENCHDIR in $BENCHMARKS; do
       echo outputfiles="$OUTPUTFILES"
       echo runscript="runme_${SIZE}.sh"
       echo referencedir=reference/${SIZE}/
+      echo comparescript="compare_${SIZE}.sh"
     ) > "$HELPERBASEDIR/regression_${SIZE}".conf
     # add entry to the main regression configuration file
     (

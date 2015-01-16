@@ -332,5 +332,12 @@ set -e
   ) > "$destfile"
   chmod +x "$destfile"
 done
+
+for file in "$TARGET_DIR"/*/compare_*.sh
+do
+  benchdir=`dirname $file`
+  sed -i -e "s+VAR_SPEC_INSTALL_DIRECTORY+$SPEC_INSTALLED_DIR+" $file
+  chmod +x $file
+done
 echo Done!
 

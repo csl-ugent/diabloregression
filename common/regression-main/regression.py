@@ -214,6 +214,7 @@ def test_program(prog,conf):
         for inf in [resolve(x,prog) for x in infiles]:
             shutil.copy(inf,test_dir)
         shutil.copy(resolve(conf["runscript"],prog),test_dir)
+        shutil.copy(resolve(conf["comparescript"],prog),test_dir)
         if "inputdirs" in conf.keys():
             # copy the complete directories mentioned here
             indirs = conf["inputdirs"].split()
@@ -226,13 +227,8 @@ def test_program(prog,conf):
 
         # compare the output files
         refdir = resolve(conf["referencedir"], prog)
-        outfiles = conf["outputfiles"].split()
-        test_failed = 0
-        for outf in outfiles:
-            result = filecmp.cmp(join(test_dir,outf), join(refdir,outf), shallow = 0)
-            if not result:
-                print "file", outf, "differs"
-                test_failed = 1
+        comparecmdline = join(test_dir,os.path.basename(conf["comparescript"]))
+        test_failed = os.spawnl(os.P_WAIT,"/bin/sh","sh",comparecmdline,refdir,test_dir)
         
         # if there is a post-run command, execute it
         if post_run != "":
