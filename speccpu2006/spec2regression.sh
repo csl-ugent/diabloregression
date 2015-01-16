@@ -228,6 +228,10 @@ for dir in "$SPEC_INSTALLED_DIR"/benchspec/CPU2006/*/; do
       if [ -d "$FP_DATA_DIR"/"$size"/"$benchdir" ]; then
         cp -R "$FP_DATA_DIR"/"$size"/"$benchdir"/* "$destdir"/reference/"$size"
       fi
+
+      if [ -d "$dir"/data/all/output ]; then
+        cp -R "$dir"/data/all/output/* "$destdir"/reference/"$size"
+      fi
     done
   fi
 done
