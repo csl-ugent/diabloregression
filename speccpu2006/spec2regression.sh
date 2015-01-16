@@ -18,31 +18,17 @@ if [ ! -f "$HELPER_DATA_DIR"/401.bzip2/runme_test.sh.org ]; then
   fi
 fi
 
-# check if the specified fp architecture is supported
-OVERRIDESDIR="$STARTUP_DIR"/outputoverrides
-if [ ! -d "$OVERRIDESDIR" ]; then
-  OVERRIDESDIR="`dirname \"$0\"`"/outputoverrides
-  if [ ! -d "$OVERRIDESDIR" ]; then
-    echo Cannot fined \"outputoverrides\" in the current directory not in the directory containing this script
-    echo
-    exit 1
-  fi
-fi
-
 print_help_exit() {
-cd "$OVERRIDESDIR"
-OVERRIDES=`echo * | sed -e 's/ /, /g'`
 cat <<HELP
 This script sets up SPEC benchmarks for remote execution and checking 
 
-Usage: $0 [-n] [-s <SSH_PARAS>] [-r <SSH_REMOTE_DIR] -p <SPEC_INSTALLED_DIR> -b <SPEC_BUILD_DIR> -d <TARGET_DIR> -a <FP_ARCH> -e <ARCH_ENDIANESS>
+Usage: $0 [-n] [-s <SSH_PARAS>] [-r <SSH_REMOTE_DIR] -p <SPEC_INSTALLED_DIR> -b <SPEC_BUILD_DIR> -d <TARGET_DIR> -e <ARCH_ENDIANESS>
   -n                     (opt) Skip copying the benchmarks to TARGET_DIR (assumes they already exist)
   -s SSH_PARAS           (opt) ssh parameters for logging in to remote system for executing benchmarks (e.g. "-p 914 -c blowfish jmaebe@drone")
   -r SSH_REMOTE_DIR      (opt) directory used on remote system for testing (default: home directory; must already exist)
   -p SPEC_INSTALLED_DIR  (req) Top level directory where SPEC_CPU2006 was installed
   -b SPEC_BUILD_DIR      (req unless -n) Specify the name of the SPEC_CPU2006 build directory (found in SPEC_INSTALLED_DIR/benchspec/CPU2006/*/build, e.g. build_base_CONFIG-nn.0000)
   -d TARGET_DIR          (req) Directory in which to copy the benchmarks, input/output files and run scripts (e.g. \$HOME/regression/arm/spec2006; will be created if necessary)
-  -a FP_ARCH             (req) Floating point arch used, supported options: $OVERRIDES
   -e ARCH_ENDIANESS      (opt) Endianness of the target platform ("little" or "big", default: little)
   -R                     (opt) also install "reference" spec input/output/config files
   -t BENCH_TIMEOUT       (opt) Kill benchmarks after they've used BENCH_TIMEOUT cpu time (default: none, parameter is passed to "ulimit -t")
@@ -58,7 +44,6 @@ SSH_REMOTE_DIR=.
 SPEC_INSTALLED_DIR=
 SPEC_BUILD_DIR=
 TARGET_DIR=
-FP_ARCH=
 ARCH_ENDIANESS=le
 WRAPPER=
 WORDSIZE=32
@@ -78,8 +63,6 @@ while getopts ns:r:p:b:d:a:e:Rt:W:w:h\? opt; do
     b) SPEC_BUILD_DIR="$OPTARG"
       ;;
     d) TARGET_DIR="$OPTARG"
-      ;;
-    a) FP_ARCH="$OPTARG"
       ;;
     e) case "$OPTARG" in
          little) ARCH_ENDIANESS=le
@@ -113,17 +96,7 @@ shift `expr $OPTIND - 1`
 
 checkempty "$TARGET_DIR" -d
 checkempty "$SPEC_INSTALLED_DIR" -p
-checkempty "$FP_ARCH" -a
 checkempty "$ARCH_ENDIANESS" -e
-
-FP_DATA_DIR="$OVERRIDESDIR"/"$FP_ARCH"
-if [ ! -d "$FP_DATA_DIR" ]; then
-  echo $FP_ARCH is an unsupported architecture, $FP_DATA_DIR not found
-  echo Found architecural overrides:
-  cd "$OVERRIDESDIR"
-  ls -1 | sed -e 's/^/  /'
-  exit 1
-fi
 
 # get absolute path
 HELPER_DATA_DIR="`dir_make_and_resolve \"${HELPER_DATA_DIR}\"`"
@@ -224,10 +197,6 @@ for dir in "$SPEC_INSTALLED_DIR"/benchspec/CPU2006/*/; do
     for size in $SIZES; do
       mkdir -p "$destdir"/reference/$size
       cp -R "$dir"/data/"$size"/output/* "$destdir"/reference/"$size"
-  # arch-specific overrides
-      if [ -d "$FP_DATA_DIR"/"$size"/"$benchdir" ]; then
-        cp -R "$FP_DATA_DIR"/"$size"/"$benchdir"/* "$destdir"/reference/"$size"
-      fi
 
       if [ -d "$dir"/data/all/output ]; then
         cp -R "$dir"/data/all/output/* "$destdir"/reference/"$size"
