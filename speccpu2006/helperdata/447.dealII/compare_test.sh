@@ -4,7 +4,7 @@ testdir=$2
 spec_install_dir=VAR_SPEC_INSTALL_DIRECTORY
 cd $spec_install_dir
 source ./shrc
-cd -
+cd - > /dev/null
 specperl $spec_install_dir/bin/specdiff -m -l 10 --abstol 1e-07 $refdir/grid-0.eps $testdir/grid-0.eps | egrep -v "^specdiff run completed$" > $testdir/grid-0.eps.cmp
 specperl $spec_install_dir/bin/specdiff -m -l 10 --abstol 1e-07 $refdir/grid-1.eps $testdir/grid-1.eps | egrep -v "^specdiff run completed$" > $testdir/grid-1.eps.cmp
 specperl $spec_install_dir/bin/specdiff -m -l 10 --abstol 1e-07 $refdir/grid-2.eps $testdir/grid-2.eps | egrep -v "^specdiff run completed$" > $testdir/grid-2.eps.cmp

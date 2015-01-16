@@ -4,7 +4,7 @@ testdir=$2
 spec_install_dir=VAR_SPEC_INSTALL_DIRECTORY
 cd $spec_install_dir
 source ./shrc
-cd -
+cd - > /dev/null
 specperl $spec_install_dir/bin/specdiff -m -l 10 --abstol 0 --reltol 5e-05 $refdir/SPEC-benchmark.log $testdir/SPEC-benchmark.log | egrep -v "^specdiff run completed$" > $testdir/SPEC-benchmark.log.cmp
 specperl $spec_install_dir/bin/specdiff -m -l 10 --abstol 0 --reltol 5e-05 --skiptol 50 --binary $refdir/SPEC-benchmark.tga $testdir/SPEC-benchmark.tga | egrep -v "^specdiff run completed$" > $testdir/SPEC-benchmark.tga.cmp
 exitcode=0

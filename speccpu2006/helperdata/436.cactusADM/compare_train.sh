@@ -4,7 +4,7 @@ testdir=$2
 spec_install_dir=VAR_SPEC_INSTALL_DIRECTORY
 cd $spec_install_dir
 source ./shrc
-cd -
+cd - > /dev/null
 specperl $spec_install_dir/bin/specdiff -m -l 10 --floatcompare $refdir/benchADM.out $testdir/benchADM.out | egrep -v "^specdiff run completed$" > $testdir/benchADM.out.cmp
 exitcode=0
 for i in benchADM.out ; do

@@ -4,7 +4,7 @@ testdir=$2
 spec_install_dir=VAR_SPEC_INSTALL_DIRECTORY
 cd $spec_install_dir
 source ./shrc
-cd -
+cd - > /dev/null
 specperl $spec_install_dir/bin/specdiff -m -l 10 $refdir/append.out $testdir/append.out | egrep -v "^specdiff run completed$" > $testdir/append.out.cmp
 specperl $spec_install_dir/bin/specdiff -m -l 10 $refdir/args.out $testdir/args.out | egrep -v "^specdiff run completed$" > $testdir/args.out.cmp
 specperl $spec_install_dir/bin/specdiff -m -l 10 $refdir/arith.out $testdir/arith.out | egrep -v "^specdiff run completed$" > $testdir/arith.out.cmp

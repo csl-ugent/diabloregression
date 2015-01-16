@@ -149,7 +149,7 @@ for BENCHDIR in $BENCHMARKS; do
       echo "spec_install_dir=VAR_SPEC_INSTALL_DIRECTORY"
       echo "cd \$spec_install_dir"
       echo "source ./shrc"
-      echo "cd -"
+      echo "cd - > /dev/null"
       echo "$OUTPUTCOMPARECOMMANDS"
       echo "exitcode=0"
       echo "for i in $OUTPUTFILES; do"

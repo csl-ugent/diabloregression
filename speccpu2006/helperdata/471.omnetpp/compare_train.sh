@@ -4,7 +4,7 @@ testdir=$2
 spec_install_dir=VAR_SPEC_INSTALL_DIRECTORY
 cd $spec_install_dir
 source ./shrc
-cd -
+cd - > /dev/null
 specperl $spec_install_dir/bin/specdiff -m -l 10 --abstol 1e-06 --reltol 1e-05 $refdir/omnetpp.log $testdir/omnetpp.log | egrep -v "^specdiff run completed$" > $testdir/omnetpp.log.cmp
 specperl $spec_install_dir/bin/specdiff -m -l 10 --abstol 1e-06 --reltol 1e-05 $refdir/omnetpp.sca $testdir/omnetpp.sca | egrep -v "^specdiff run completed$" > $testdir/omnetpp.sca.cmp
 exitcode=0

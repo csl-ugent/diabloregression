@@ -4,7 +4,7 @@ testdir=$2
 spec_install_dir=VAR_SPEC_INSTALL_DIRECTORY
 cd $spec_install_dir
 source ./shrc
-cd -
+cd - > /dev/null
 specperl $spec_install_dir/bin/specdiff -m -l 10 --abstol 1e-09 --reltol 1e-09 --obiwan $refdir/SPECtestformatmodifier_z.txt $testdir/SPECtestformatmodifier_z.txt | egrep -v "^specdiff run completed$" > $testdir/SPECtestformatmodifier_z.txt.cmp
 specperl $spec_install_dir/bin/specdiff -m -l 10 --abstol 1e-09 --reltol 1e-09 --obiwan $refdir/stairs.dat $testdir/stairs.dat | egrep -v "^specdiff run completed$" > $testdir/stairs.dat.cmp
 exitcode=0

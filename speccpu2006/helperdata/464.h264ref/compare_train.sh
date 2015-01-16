@@ -4,7 +4,7 @@ testdir=$2
 spec_install_dir=VAR_SPEC_INSTALL_DIRECTORY
 cd $spec_install_dir
 source ./shrc
-cd -
+cd - > /dev/null
 specperl $spec_install_dir/bin/specdiff -m -l 10 --cw --floatcompare $refdir/foreman_train_baseline_encodelog.out $testdir/foreman_train_baseline_encodelog.out | egrep -v "^specdiff run completed$" > $testdir/foreman_train_baseline_encodelog.out.cmp
 specperl $spec_install_dir/bin/specdiff -m -l 10 --binary --cw --floatcompare $refdir/foreman_train_baseline_leakybucketparam.cfg $testdir/foreman_train_baseline_leakybucketparam.cfg | egrep -v "^specdiff run completed$" > $testdir/foreman_train_baseline_leakybucketparam.cfg.cmp
 exitcode=0
