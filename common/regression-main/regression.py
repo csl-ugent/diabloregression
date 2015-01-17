@@ -33,6 +33,8 @@ makefile = "Makefile.ppc64"
 keep_optimized = 0
 keep_suffix = ".diablo"
 exec_previous = 0
+copy_output = 0
+copy_output_directory = "output"
 
 # configurable in the general config file
 basedir = ""
@@ -234,6 +236,12 @@ def test_program(prog,conf):
         if post_run != "":
             os.system(post_run_interpret(post_run,prog,conf))
 
+        # copy output files
+        if copy_output == 1:
+            saveoutputdir = join(conf["savedir"],copy_output_directory)
+            shutil.rmtree(saveoutputdir, True)
+            shutil.copytree(test_dir,saveoutputdir)
+
     except Exception, e:
         print "Exception", e
         test_failed = 1
@@ -315,6 +323,8 @@ def PrintUsage():
     print "Usage:"
     print sys.argv[0],"""
     [-c|--config <config-file>]           (regression.conf-style file to use) (default: regression.conf)
+    [-C|--copy-output]                    (copy the generated output files, including b.out, to the benchmark directory) (default: disabled)
+    [-D|--copy-output-directory <name>]   (name of the directory containing the output files in the benchmark directory, specifying this option implies -C) (default: output)
     [-p|--diablo-executable <executable>] (name of diablo executable to use) (default: diablo)
     [-d|--diablo-dir <diablo-dir>]        (directory in which to search for the diablo executable) (default: ./diablo/)
     [-o|--diablo-opts <diablo-options>]   (options to pass to diablo) (default: none)
@@ -343,10 +353,10 @@ def PrintUsage():
 # {{{ parse the command line arguments 
 def parse_args():
     """parse the command line arguments"""
-    global config_file, diablo_dir, diablo_opts, diablo_prog, do_validation, post_run, binsearch_max, binsearch_logs, generate_profile, generate_profile_obj, use_profile, profile_dir, report, report_file, do_time, do_fresh_checkout, makefile, keep_optimized, keep_suffix, test_dir, exec_previous
+    global config_file, diablo_dir, diablo_opts, diablo_prog, do_validation, post_run, binsearch_max, binsearch_logs, generate_profile, generate_profile_obj, use_profile, profile_dir, report, report_file, do_time, do_fresh_checkout, makefile, keep_optimized, keep_suffix, test_dir, exec_previous, copy_output, copy_output_directory
 
-    short_opts = "c:d:o:p:x:b:B:g:PR:irmf:kK:tT:X:"
-    long_opts = ["config=","diablo-dir=","diablo-opts=","measure-only","diablo-executable=","post-exec=","binary-search=","binary-search-with-log","generate-profile=","use-profile","profile-directory=","report","report-file=","time","fresh-checkout=","keep-optimized","keep-with-suffix=","temp-test-dir","test-dir=","exec-previous="]
+    short_opts = "c:CD:d:o:p:x:b:B:g:PR:irmf:kK:tT:X:"
+    long_opts = ["config=","copy-output","copy-output-directory","diablo-dir=","diablo-opts=","measure-only","diablo-executable=","post-exec=","binary-search=","binary-search-with-log","generate-profile=","use-profile","profile-directory=","report","report-file=","time","fresh-checkout=","keep-optimized","keep-with-suffix=","temp-test-dir","test-dir=","exec-previous="]
 
     try:
         opts, args = getopt(sys.argv[1:],short_opts,long_opts);
@@ -356,6 +366,11 @@ def parse_args():
     for opt, arg in opts:
         if opt == "-c" or opt == "--config":
             config_file = arg
+        elif opt == "-C" or opt == "--copy-output":
+            copy_output = 1
+        elif opt == "-D" or opt == "--copy-output-directory":
+            copy_output = 1
+            copy_output_directory = arg
         elif opt == "-d" or opt == "--diablo-dir":
             diablo_dir = arg
         elif opt == "-o" or opt == "--diablo-opts":
