@@ -137,7 +137,7 @@ for dir in "$SPEC_INSTALLED_DIR"/benchspec/CPU2006/*/; do
       cp -R "$dir"/build/"$SPEC_BUILD_DIR" "$TARGET_DIR"/"$benchdir"
     fi
   else
-    MISSING_BENCHMARKS="$MISSING_BENCHMARKS `echo $benchdir|sed -e 's/[^.]*\.//'`"
+    MISSING_BENCHMARKS="$MISSING_BENCHMARKS $benchdir"
   fi
 done
 
@@ -225,8 +225,8 @@ for conffile in *.conf; do
     if [ ! -z "$benchlinestart" ]; then
       echo "Removing $bench from "$TARGET_DIR"/$conffile because it was not (correctly) compiled"
       (
-        head -n $(($benchlinestart-1)) < "$TARGET_DIR"/$conffile
-        tail -n +$(($benchlinestart+5)) < "$TARGET_DIR"/$conffile
+        head -n $(($benchlinestart-2)) < "$TARGET_DIR"/$conffile
+        tail -n +$(($benchlinestart+4)) < "$TARGET_DIR"/$conffile
       ) > "$TARGET_DIR"/$conffile.new
       mv "$TARGET_DIR"/$conffile.new "$TARGET_DIR"/$conffile
     fi
