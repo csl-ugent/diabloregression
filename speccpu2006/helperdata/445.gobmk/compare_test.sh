@@ -14,7 +14,10 @@ specperl $spec_install_dir/bin/specdiff -m -l 10 $refdir/cutstone.out $testdir/c
 specperl $spec_install_dir/bin/specdiff -m -l 10 $refdir/dniwog.out $testdir/dniwog.out | egrep -v "^specdiff run completed$" > $testdir/dniwog.out.cmp
 exitcode=0
 for i in capture.out connect.out connect_rot.out connection.out connection_rot.out cutstone.out dniwog.out ; do
-  if [[ -s $testdir/$i.cmp ]]; then
+  if [[ ! -f $testdir/$i ]]; then
+    echo "Output file $i does not exist"
+    exitcode=1
+  elif [[ -s $testdir/$i.cmp ]]; then
     echo "Output file $i differs"
     exitcode=1
   fi

@@ -9,7 +9,10 @@ specperl $spec_install_dir/bin/specdiff -m -l 10 --abstol 1e-09 --reltol 1e-09 -
 specperl $spec_install_dir/bin/specdiff -m -l 10 --abstol 1e-09 --reltol 1e-09 --obiwan $refdir/hyperviscoplastic.dat $testdir/hyperviscoplastic.dat | egrep -v "^specdiff run completed$" > $testdir/hyperviscoplastic.dat.cmp
 exitcode=0
 for i in SPECtestformatmodifier_z.txt hyperviscoplastic.dat ; do
-  if [[ -s $testdir/$i.cmp ]]; then
+  if [[ ! -f $testdir/$i ]]; then
+    echo "Output file $i does not exist"
+    exitcode=1
+  elif [[ -s $testdir/$i.cmp ]]; then
     echo "Output file $i differs"
     exitcode=1
   fi

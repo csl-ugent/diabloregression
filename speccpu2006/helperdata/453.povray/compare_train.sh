@@ -9,7 +9,10 @@ specperl $spec_install_dir/bin/specdiff -m -l 10 --abstol 0 --reltol 5e-05 $refd
 specperl $spec_install_dir/bin/specdiff -m -l 10 --abstol 0 --reltol 5e-05 --skiptol 50 --binary $refdir/SPEC-benchmark.tga $testdir/SPEC-benchmark.tga | egrep -v "^specdiff run completed$" > $testdir/SPEC-benchmark.tga.cmp
 exitcode=0
 for i in SPEC-benchmark.log SPEC-benchmark.tga ; do
-  if [[ -s $testdir/$i.cmp ]]; then
+  if [[ ! -f $testdir/$i ]]; then
+    echo "Output file $i does not exist"
+    exitcode=1
+  elif [[ -s $testdir/$i.cmp ]]; then
     echo "Output file $i differs"
     exitcode=1
   fi

@@ -9,7 +9,10 @@ specperl $spec_install_dir/bin/specdiff -m -l 10 --abstol 1e-05 --reltol 0.002 $
 specperl $spec_install_dir/bin/specdiff -m -l 10 --abstol 1e-05 --reltol 0.002 $refdir/retro.out $testdir/retro.out | egrep -v "^specdiff run completed$" > $testdir/retro.out.cmp
 exitcode=0
 for i in nph3.out retro.out ; do
-  if [[ -s $testdir/$i.cmp ]]; then
+  if [[ ! -f $testdir/$i ]]; then
+    echo "Output file $i does not exist"
+    exitcode=1
+  elif [[ -s $testdir/$i.cmp ]]; then
     echo "Output file $i differs"
     exitcode=1
   fi

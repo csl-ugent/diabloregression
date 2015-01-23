@@ -13,7 +13,10 @@ specperl $spec_install_dir/bin/specdiff -m -l 10 $refdir/suns.out $testdir/suns.
 specperl $spec_install_dir/bin/specdiff -m -l 10 $refdir/validate $testdir/validate | egrep -v "^specdiff run completed$" > $testdir/validate.cmp
 exitcode=0
 for i in diffmail.2.550.15.24.23.100.out perfect.b.3.out scrabbl.out splitmail.535.13.25.24.1091.out suns.out validate ; do
-  if [[ -s $testdir/$i.cmp ]]; then
+  if [[ ! -f $testdir/$i ]]; then
+    echo "Output file $i does not exist"
+    exitcode=1
+  elif [[ -s $testdir/$i.cmp ]]; then
     echo "Output file $i differs"
     exitcode=1
   fi

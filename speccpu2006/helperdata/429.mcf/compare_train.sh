@@ -9,7 +9,10 @@ specperl $spec_install_dir/bin/specdiff -m -l 10 $refdir/inp.out $testdir/inp.ou
 specperl $spec_install_dir/bin/specdiff -m -l 10 $refdir/mcf.out $testdir/mcf.out | egrep -v "^specdiff run completed$" > $testdir/mcf.out.cmp
 exitcode=0
 for i in inp.out mcf.out ; do
-  if [[ -s $testdir/$i.cmp ]]; then
+  if [[ ! -f $testdir/$i ]]; then
+    echo "Output file $i does not exist"
+    exitcode=1
+  elif [[ -s $testdir/$i.cmp ]]; then
     echo "Output file $i differs"
     exitcode=1
   fi

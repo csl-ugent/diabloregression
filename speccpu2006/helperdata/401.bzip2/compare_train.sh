@@ -10,7 +10,10 @@ specperl $spec_install_dir/bin/specdiff -m -l 10 $refdir/input.combined.out $tes
 specperl $spec_install_dir/bin/specdiff -m -l 10 $refdir/input.program.out $testdir/input.program.out | egrep -v "^specdiff run completed$" > $testdir/input.program.out.cmp
 exitcode=0
 for i in byoudoin.jpg.out input.combined.out input.program.out ; do
-  if [[ -s $testdir/$i.cmp ]]; then
+  if [[ ! -f $testdir/$i ]]; then
+    echo "Output file $i does not exist"
+    exitcode=1
+  elif [[ -s $testdir/$i.cmp ]]; then
     echo "Output file $i differs"
     exitcode=1
   fi

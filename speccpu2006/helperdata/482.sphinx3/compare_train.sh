@@ -10,7 +10,10 @@ specperl $spec_install_dir/bin/specdiff -m -l 10 --reltol 0.0004 --floatcompare 
 specperl $spec_install_dir/bin/specdiff -m -l 10 --reltol 1e-06 --floatcompare $refdir/total_considered.out $testdir/total_considered.out | egrep -v "^specdiff run completed$" > $testdir/total_considered.out.cmp
 exitcode=0
 for i in an4.log considered.out total_considered.out ; do
-  if [[ -s $testdir/$i.cmp ]]; then
+  if [[ ! -f $testdir/$i ]]; then
+    echo "Output file $i does not exist"
+    exitcode=1
+  elif [[ -s $testdir/$i.cmp ]]; then
     echo "Output file $i differs"
     exitcode=1
   fi

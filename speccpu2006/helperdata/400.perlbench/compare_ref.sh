@@ -10,7 +10,10 @@ specperl $spec_install_dir/bin/specdiff -m -l 10 $refdir/diffmail.4.800.10.17.19
 specperl $spec_install_dir/bin/specdiff -m -l 10 $refdir/splitmail.1600.12.26.16.4500.out $testdir/splitmail.1600.12.26.16.4500.out | egrep -v "^specdiff run completed$" > $testdir/splitmail.1600.12.26.16.4500.out.cmp
 exitcode=0
 for i in checkspam.2500.5.25.11.150.1.1.1.1.out diffmail.4.800.10.17.19.300.out splitmail.1600.12.26.16.4500.out ; do
-  if [[ -s $testdir/$i.cmp ]]; then
+  if [[ ! -f $testdir/$i ]]; then
+    echo "Output file $i does not exist"
+    exitcode=1
+  elif [[ -s $testdir/$i.cmp ]]; then
     echo "Output file $i differs"
     exitcode=1
   fi

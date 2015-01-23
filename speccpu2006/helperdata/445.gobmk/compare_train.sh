@@ -15,7 +15,10 @@ specperl $spec_install_dir/bin/specdiff -m -l 10 $refdir/nicklas2.out $testdir/n
 specperl $spec_install_dir/bin/specdiff -m -l 10 $refdir/nicklas4.out $testdir/nicklas4.out | egrep -v "^specdiff run completed$" > $testdir/nicklas4.out.cmp
 exitcode=0
 for i in arb.out arend.out arion.out atari_atari.out blunder.out buzco.out nicklas2.out nicklas4.out ; do
-  if [[ -s $testdir/$i.cmp ]]; then
+  if [[ ! -f $testdir/$i ]]; then
+    echo "Output file $i does not exist"
+    exitcode=1
+  elif [[ -s $testdir/$i.cmp ]]; then
     echo "Output file $i differs"
     exitcode=1
   fi

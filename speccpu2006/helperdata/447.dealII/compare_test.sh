@@ -26,7 +26,10 @@ specperl $spec_install_dir/bin/specdiff -m -l 10 --abstol 1e-07 $refdir/solution
 specperl $spec_install_dir/bin/specdiff -m -l 10 --abstol 1e-07 $refdir/log $testdir/log | egrep -v "^specdiff run completed$" > $testdir/log.cmp
 exitcode=0
 for i in grid-0.eps grid-1.eps grid-2.eps grid-3.eps grid-4.eps grid-5.eps grid-6.eps grid-7.eps grid-8.eps solution-0.gmv solution-1.gmv solution-2.gmv solution-3.gmv solution-4.gmv solution-5.gmv solution-6.gmv solution-7.gmv solution-8.gmv log ; do
-  if [[ -s $testdir/$i.cmp ]]; then
+  if [[ ! -f $testdir/$i ]]; then
+    echo "Output file $i does not exist"
+    exitcode=1
+  elif [[ -s $testdir/$i.cmp ]]; then
     echo "Output file $i differs"
     exitcode=1
   fi

@@ -86,7 +86,10 @@ specperl $spec_install_dir/bin/specdiff -m -l 10 $refdir/vec.out $testdir/vec.ou
 specperl $spec_install_dir/bin/specdiff -m -l 10 $refdir/wantarray.out $testdir/wantarray.out | egrep -v "^specdiff run completed$" > $testdir/wantarray.out.cmp
 exitcode=0
 for i in append.out args.out arith.out array.out attrs.out auto.out base_cond.out base_pat.out base_term.out bless.out bop.out bproto.out chars.out chop.out cmdopt.out cmp.out comp_term.out concat.out context.out decl.out defins.out delete.out die.out do.out each.out eval.out exists_sub.out exp.out fh.out grep.out gv.out hashwarn.out if.out inc.out index.out int.out join.out length.out lex.out list.out loopctl.out lop.out makerand.out method.out my.out nothr5005.out oct.out op_cond.out op_pat.out ord.out override.out pack.out package.out pos.out push.out quotemeta.out range.out recurse.out redef.out ref.out regexp.out regexp_noamp.out regmesg.out repeat.out reverse.out rs.out sleep.out sort.out splice.out study.out sub_lval.out subst.out subst_amp.out subst_wamp.out tr.out undef.out unshift.out vec.out wantarray.out ; do
-  if [[ -s $testdir/$i.cmp ]]; then
+  if [[ ! -f $testdir/$i ]]; then
+    echo "Output file $i does not exist"
+    exitcode=1
+  elif [[ -s $testdir/$i.cmp ]]; then
     echo "Output file $i differs"
     exitcode=1
   fi

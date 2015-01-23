@@ -9,7 +9,10 @@ specperl $spec_install_dir/bin/specdiff -m -l 10 --reltol 0.001 $refdir/BigLakes
 specperl $spec_install_dir/bin/specdiff -m -l 10 --reltol 0.001 $refdir/rivers1.out $testdir/rivers1.out | egrep -v "^specdiff run completed$" > $testdir/rivers1.out.cmp
 exitcode=0
 for i in BigLakes1024.out rivers1.out ; do
-  if [[ -s $testdir/$i.cmp ]]; then
+  if [[ ! -f $testdir/$i ]]; then
+    echo "Output file $i does not exist"
+    exitcode=1
+  elif [[ -s $testdir/$i.cmp ]]; then
     echo "Output file $i differs"
     exitcode=1
   fi

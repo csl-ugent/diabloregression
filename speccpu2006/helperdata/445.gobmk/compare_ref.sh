@@ -12,7 +12,10 @@ specperl $spec_install_dir/bin/specdiff -m -l 10 $refdir/trevorc.out $testdir/tr
 specperl $spec_install_dir/bin/specdiff -m -l 10 $refdir/trevord.out $testdir/trevord.out | egrep -v "^specdiff run completed$" > $testdir/trevord.out.cmp
 exitcode=0
 for i in 13x13.out nngs.out score2.out trevorc.out trevord.out ; do
-  if [[ -s $testdir/$i.cmp ]]; then
+  if [[ ! -f $testdir/$i ]]; then
+    echo "Output file $i does not exist"
+    exitcode=1
+  elif [[ -s $testdir/$i.cmp ]]; then
     echo "Output file $i differs"
     exitcode=1
   fi

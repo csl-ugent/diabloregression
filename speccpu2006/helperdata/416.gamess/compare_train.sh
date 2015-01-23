@@ -8,7 +8,10 @@ cd - > /dev/null
 specperl $spec_install_dir/bin/specdiff -m -l 10 --abstol 1e-05 --reltol 0.0001 --ignorecase $refdir/h2ocu2+.energy.out $testdir/h2ocu2+.energy.out | egrep -v "^specdiff run completed$" > $testdir/h2ocu2+.energy.out.cmp
 exitcode=0
 for i in h2ocu2+.energy.out ; do
-  if [[ -s $testdir/$i.cmp ]]; then
+  if [[ ! -f $testdir/$i ]]; then
+    echo "Output file $i does not exist"
+    exitcode=1
+  elif [[ -s $testdir/$i.cmp ]]; then
     echo "Output file $i differs"
     exitcode=1
   fi

@@ -16,7 +16,10 @@ specperl $spec_install_dir/bin/specdiff -m -l 10 $refdir/s04.s $testdir/s04.s | 
 specperl $spec_install_dir/bin/specdiff -m -l 10 $refdir/scilab.s $testdir/scilab.s | egrep -v "^specdiff run completed$" > $testdir/scilab.s.cmp
 exitcode=0
 for i in 166.s 200.s c-typeck.s cp-decl.s expr.s expr2.s g23.s s04.s scilab.s ; do
-  if [[ -s $testdir/$i.cmp ]]; then
+  if [[ ! -f $testdir/$i ]]; then
+    echo "Output file $i does not exist"
+    exitcode=1
+  elif [[ -s $testdir/$i.cmp ]]; then
     echo "Output file $i differs"
     exitcode=1
   fi

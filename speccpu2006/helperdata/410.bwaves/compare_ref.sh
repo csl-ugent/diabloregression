@@ -10,7 +10,10 @@ specperl $spec_install_dir/bin/specdiff -m -l 10 --reltol 0.015 $refdir/bwaves2.
 specperl $spec_install_dir/bin/specdiff -m -l 10 --reltol 1e-06 $refdir/bwaves3.out $testdir/bwaves3.out | egrep -v "^specdiff run completed$" > $testdir/bwaves3.out.cmp
 exitcode=0
 for i in bwaves.out bwaves2.out bwaves3.out ; do
-  if [[ -s $testdir/$i.cmp ]]; then
+  if [[ ! -f $testdir/$i ]]; then
+    echo "Output file $i does not exist"
+    exitcode=1
+  elif [[ -s $testdir/$i.cmp ]]; then
     echo "Output file $i differs"
     exitcode=1
   fi

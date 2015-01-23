@@ -8,7 +8,10 @@ cd - > /dev/null
 specperl $spec_install_dir/bin/specdiff -m -l 10 --reltol 0.006 $refdir/stdout $testdir/stdout | egrep -v "^specdiff run completed$" > $testdir/stdout.cmp
 exitcode=0
 for i in stdout ; do
-  if [[ -s $testdir/$i.cmp ]]; then
+  if [[ ! -f $testdir/$i ]]; then
+    echo "Output file $i does not exist"
+    exitcode=1
+  elif [[ -s $testdir/$i.cmp ]]; then
     echo "Output file $i differs"
     exitcode=1
   fi

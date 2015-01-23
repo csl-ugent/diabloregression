@@ -11,7 +11,10 @@ specperl $spec_install_dir/bin/specdiff -m -l 10 --abstol 20 --reltol 0.0001 --o
 specperl $spec_install_dir/bin/specdiff -m -l 10 --abstol 1e-05 --reltol 0.02 --obiwan $refdir/ref.out $testdir/ref.out | egrep -v "^specdiff run completed$" > $testdir/ref.out.cmp
 exitcode=0
 for i in pds-50.mps.info pds-50.mps.out ref.mps.info ref.out ; do
-  if [[ -s $testdir/$i.cmp ]]; then
+  if [[ ! -f $testdir/$i ]]; then
+    echo "Output file $i does not exist"
+    exitcode=1
+  elif [[ -s $testdir/$i.cmp ]]; then
     echo "Output file $i differs"
     exitcode=1
   fi
