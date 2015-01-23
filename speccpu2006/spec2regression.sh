@@ -129,7 +129,7 @@ fi
 MISSING_BENCHMARKS=
 for dir in "$SPEC_INSTALLED_DIR"/benchspec/CPU2006/*/; do
   benchdir=`basename "$dir"`
-  if [ -d "$dir"/build/"$SPEC_BUILD_DIR" ]; then
+  if [ -d "$dir"/build/"$SPEC_BUILD_DIR" ] && ! grep -q "^specmake: .*Error" "$dir"/build/"$SPEC_BUILD_DIR"/make.err; then
     if [ "x${SPEC_COPY_BENCHMARKS}" = xy ]; then
       if [ -d "$TARGET_DIR"/"$benchdir" ] ; then
         rm -rf "$TARGET_DIR"/"$benchdir"
@@ -137,7 +137,7 @@ for dir in "$SPEC_INSTALLED_DIR"/benchspec/CPU2006/*/; do
       cp -R "$dir"/build/"$SPEC_BUILD_DIR" "$TARGET_DIR"/"$benchdir"
     fi
   else
-    MISSING_BENCHMARKS="$MISSING_BENCHMARKS `echo $benchdir|sed -e 's/[^.]*\.//'`"
+    MISSING_BENCHMARKS="$MISSING_BENCHMARKS $benchdir"
   fi
 done
 
@@ -223,10 +223,10 @@ for conffile in *.conf; do
   for bench in $MISSING_BENCHMARKS; do
     benchlinestart=`grep -n $bench "$TARGET_DIR"/$conffile 2>/dev/null | head -n 1 | sed -e 's/:.*//'`
     if [ ! -z "$benchlinestart" ]; then
-      echo "Removing $bench from config file because it was not compiled (note that clang does not support Fortran benchmarks)"
+      echo "Removing $bench from "$TARGET_DIR"/$conffile because it was not (correctly) compiled"
       (
-        head -n $(($benchlinestart-1)) < "$TARGET_DIR"/$conffile
-        tail -n +$(($benchlinestart+5)) < "$TARGET_DIR"/$conffile
+        head -n $(($benchlinestart-2)) < "$TARGET_DIR"/$conffile
+        tail -n +$(($benchlinestart+4)) < "$TARGET_DIR"/$conffile
       ) > "$TARGET_DIR"/$conffile.new
       mv "$TARGET_DIR"/$conffile.new "$TARGET_DIR"/$conffile
     fi
@@ -285,7 +285,7 @@ set -e
 # add command to copy the output files back to this machine
      SCP_PARAS=`echo $SSH_PARAS | sed -e 's!-p *\([^ \t][^ \t]*\)!-P \1!'`
 # curly brances are only expanded if there's at least one comma :/
-     echo "scp $SCP_PARAS:\"${SSH_REMOTE_DIR}/$dir/{"${reffiles}\$\{SCPPROFILEFILE\}"}"\" .
+     echo "scp $SCP_PARAS:\"${SSH_REMOTE_DIR}/$dir/\"{"${reffiles}\$\{SCPPROFILEFILE\}"}" .
    else
      echo 'dotime=$1'
      echo 'collectprofile=$2'
