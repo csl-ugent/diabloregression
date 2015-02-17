@@ -129,6 +129,7 @@ fi
 MISSING_BENCHMARKS=
 for dir in "$SPEC_INSTALLED_DIR"/benchspec/CPU2006/*/; do
   benchdir=`basename "$dir"`
+  set +e
   if [ -d "$dir"/build/"$SPEC_BUILD_DIR" ] && ! grep -q "^specmake: .*Error" "$dir"/build/"$SPEC_BUILD_DIR"/make.err; then
     if [ "x${SPEC_COPY_BENCHMARKS}" = xy ]; then
       if [ -d "$TARGET_DIR"/"$benchdir" ] ; then
@@ -139,6 +140,7 @@ for dir in "$SPEC_INSTALLED_DIR"/benchspec/CPU2006/*/; do
   else
     MISSING_BENCHMARKS="$MISSING_BENCHMARKS $benchdir"
   fi
+  set -e
 done
 
 if [ "x${SPEC_COPY_BENCHMARKS}" = xy ]; then
