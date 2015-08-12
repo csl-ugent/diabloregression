@@ -215,7 +215,7 @@ if [ ! -z "$CLANG_INSTALLED_DIR" ]; then
   SPEC_OPT_FLAGS="$SPEC_OPT_FLAGS -isysroot $CROSSTOOLS_ROOT/$CROSSTOOLS_PREFIX/sysroot -no-integrated-as -gcc-toolchain $CROSSTOOLS_ROOT -ccc-gcc-name $CROSSTOOLS_PREFIX -target $CROSSTOOLS_PREFIX -Wl,--no-demangle"
   SPEC_EXCLUDE_BENCHMARKS="^410.bwaves ^416.gamess ^434.zeusmp ^435.gromacs ^436.cactusADM ^437.leslie3d ^454.calculix ^459.GemsFDTD ^465.tonto ^481.wrf"
 else
-  GCCVERSION=`"$CROSSTOOLS_ROOT"/bin/"$CROSSTOOLS_PREFIX"-gcc --version|head -1 |sed -e 's/.* //'`
+  GCCVERSION=`"$CROSSTOOLS_ROOT"/bin/"$CROSSTOOLS_PREFIX"-gcc --version|head -1 | sed -e 's/([^\)]*)//g' | sed -e 's/\s\+/ /g' | cut -d' ' -f2`
   GCCMAJORVERSION=`echo $GCCVERSION | cut -d '.' -f 1`
   GCCMINORVERSION=`echo $GCCVERSION | cut -d '.' -f 2`
 # see http://gcc.gnu.org/gcc-4.8/changes.html
