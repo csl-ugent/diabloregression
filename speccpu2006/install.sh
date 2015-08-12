@@ -217,7 +217,7 @@ if [ ! -z "$CLANG_INSTALLED_DIR" ]; then
 else
   GCCVERSION=`"$CROSSTOOLS_ROOT"/bin/"$CROSSTOOLS_PREFIX"-gcc --version|head -1 | sed -e 's/([^\)]*)//g' | sed -e 's/\s\+/ /g' | cut -d' ' -f2`
   GCCMAJORVERSION=`echo $GCCVERSION | cut -d '.' -f 1`
-  GCCMINORVERSION=`echo $GCCVERSION | cut -d '.' -f 2`
+  GCCMINORVERSION=`echo $GCCVERSION | cut -d '.' -f 2 | sed -e 's/ *(.*//'`
 # see http://gcc.gnu.org/gcc-4.8/changes.html
   if test \( $GCCMAJORVERSION -gt 4 \) -o \( $GCCMAJORVERSION -eq 4 -a $GCCMINORVERSION -ge 8 \) ; then
     SPEC_OPT_FLAGS="$SPEC_OPT_FLAGS -fno-aggressive-loop-optimizations"
