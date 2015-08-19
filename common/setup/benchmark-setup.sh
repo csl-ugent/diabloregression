@@ -426,7 +426,7 @@ for linkage_level in "${linkage[@]}"; do
     remote=`get_remote_directory $bench_path`
 
     tmp_file=`make_temp_suffix .tar.bz2`
-    file_name=/mnt/data/spec2006/${BENCH_ARCHIVES["$config_id"]}/$linkage_level/O$opt_level.tar.bz2
+    file_name=/mnt/data/benchmarks/spec2006/${BENCH_ARCHIVES["$config_id"]}/$linkage_level/O$opt_level.tar.bz2
     download $file_name  $tmp_file
     setup_benchmarks $tmp_file $bench_path $spec_dir $gcc_toolchain_path "$llvm_toolchain_path" $board_id $remote
 

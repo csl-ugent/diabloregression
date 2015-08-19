@@ -10,7 +10,7 @@ fi
 target_directory=$1
 check_empty "$target_directory" "please provide a destination directory"
 
-spec_archive=/mnt/data/spec2006/speccommon.tar.bz2
+spec_archive=/mnt/data/benchmarks/spec2006/speccommon.tar.bz2
 
 tmp_file=`make_temp_suffix .tar.bz2`
 download $spec_archive $tmp_file
