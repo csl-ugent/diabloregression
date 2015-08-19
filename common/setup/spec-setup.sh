@@ -23,7 +23,8 @@ cd $abs_target_directory
 echo "extracting data"
 tar xf $tmp_file
 
-for f in `grep -rl "DIABLO_SPEC_TOOLS"`; do
+echo "looking for files that need patching"
+for f in `grep -rl "DIABLO_SPEC_TOOLS" .`; do
 	if [ -n "`file $f | grep text`" ]; then
 		echo "Patching file $f"
 		sed -i "s:DIABLO_SPEC_TOOLS:${abs_target_directory}:g" $f
