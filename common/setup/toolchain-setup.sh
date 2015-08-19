@@ -106,7 +106,7 @@ function install_toolchain {
 
   tar xf ${tc_archive}
 
-  for f in `grep -lr "DIABLO_TOOLCHAIN_PATH"`
+  for f in `grep -lr "DIABLO_TOOLCHAIN_PATH" .`
   do
     # only process text files
     if [ -n "`file $f | grep text`" ]; then
