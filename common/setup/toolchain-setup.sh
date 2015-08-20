@@ -48,6 +48,10 @@ Android
      18. LLVM 3.3
      19. LLVM 3.4
 
+Android (64-bit); these toolchains are only meant to build the AOSP sources
+     20. GCC 4.6
+     21. GCC 4.8
+
 EOF
   exit 1
 }
@@ -90,6 +94,8 @@ TOOLCHAIN[16]="android/gcc/thumb/gcc-4.6"
 TOOLCHAIN[17]="android/gcc/thumb/gcc-4.8"
 TOOLCHAIN[18]="android/llvm/llvm-3.3"
 TOOLCHAIN[19]="android/llvm/llvm-3.4"
+TOOLCHAIN[20]="android/gcc/thumb/gcc-4.6_64bit"
+TOOLCHAIN[21]="android/gcc/thumb/gcc-4.8_64bit"
 
 # Parameters
 #  1. toolchain archive file
