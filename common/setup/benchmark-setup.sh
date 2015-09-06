@@ -77,6 +77,9 @@ Linux
      20. LLVM 3.5
      21. LLVM 3.6
 
+   aarch64
+     30. GCC 4.8.1
+
 Android
    ARM
      22. GCC 4.6
@@ -195,6 +198,8 @@ add_benchmark android/thumb/gcc-4.6   android/gcc/thumb/gcc-4.6 ""
 add_benchmark android/thumb/gcc-4.8   android/gcc/thumb/gcc-4.8 ""
 add_benchmark android/thumb/llvm-3.3  android/gcc/thumb/gcc-4.8 android/llvm/llvm-3.3
 add_benchmark android/thumb/llvm-3.4  android/gcc/thumb/gcc-4.8 android/llvm/llvm-3.4
+
+add_benchmark linux/aarch64/gcc-4.8.1 linux/gcc/aarch64/gcc-4.8.1 ""
 
 # parameters:
 #  1: path to archive file
