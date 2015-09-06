@@ -39,6 +39,9 @@ Linux
      14. LLVM 3.5
      15. LLVM 3.6
 
+   Aarch64 (ARMv8)
+     22. GCC 4.8.1
+
 Android
    ARM/Thumb
      16. GCC 4.6
@@ -96,6 +99,7 @@ TOOLCHAIN[18]="android/llvm/llvm-3.3"
 TOOLCHAIN[19]="android/llvm/llvm-3.4"
 TOOLCHAIN[20]="android/gcc/thumb/gcc-4.6_64bit"
 TOOLCHAIN[21]="android/gcc/thumb/gcc-4.8_64bit"
+TOOLCHAIN[22]="linux/gcc/aarch64/gcc-4.8.1"
 
 # Parameters
 #  1. toolchain archive file
