@@ -3,7 +3,7 @@ sleep_time=2
 jobid=`(
   echo "#!/usr/bin/env bash"
   echo "#PBS -N Regression_calculix"
-  echo "#PBS -l nodes=1:armv7"
+  echo "#PBS -l nodes=1:VAR_PBS_PROPERTIES"
   echo "#PBS -u pbs"
   echo "d=\\\$HOME/\\\$PBS_JOBID"
   echo "function stagein()"
