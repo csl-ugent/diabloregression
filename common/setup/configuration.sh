@@ -49,7 +49,7 @@ function make_temp_suffix {
 function remote_file_exists {
 	f=$1
 
-	if ! ssh ${TYR_USER}@tyr [ -f $f ]; then
+	if ! ssh ${TYR_USER}@${TYR_HOST} [ -f $f ]; then
 		echo "remote file $f does not exist!"
 		echo "$2"
 		exit 1
@@ -61,7 +61,7 @@ function download {
 	dst=$2
 
 	echo "downloading $1"
-	scp ${TYR_USER}@tyr:$src $dst
+	scp ${TYR_USER}@${TYR_HOST}:$src $dst
 }
 
 function rel_to_abs_file {
