@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+cd `dirname $0`
+outfile=input_test.tar.bz2
+if [ -e $outfile ]; then
+  exit 0
+fi
+inputfiles=" input/all/cpu2006_mhonarc.rc input/all/diffmail.pl input/all/splitmail.pl input/test/append.t input/test/args.t input/test/arith.t input/test/array.t input/test/attrs.pl input/test/auto.t input/test/base_cond.t input/test/base_pat.t input/test/base_term.t input/test/bless.t input/test/bop.t input/test/bproto.t input/test/chars.t input/test/chop.t input/test/cmdopt.t input/test/cmp.t input/test/comp_term.t input/test/concat.t input/test/context.t input/test/decl.t input/test/defins.t input/test/delete.t input/test/die.t input/test/do.t input/test/each.t input/test/eval.t input/test/exists_sub.t input/test/exp.t input/test/fh.t input/test/grep.t input/test/gv.pl input/test/hashwarn.t input/test/if.t input/test/inc.t input/test/index.t input/test/int.t input/test/join.t input/test/length.t input/test/lex.t input/test/list.t input/test/loopctl.t input/test/lop.t input/test/makerand.pl input/test/method.t input/test/my.t input/test/nothr5005.t input/test/oct.t input/test/op_cond.t input/test/op_pat.t input/test/ord.t input/test/override.t input/test/pack.pl input/test/package.t input/test/pos.t input/test/push.t input/test/quotemeta.t input/test/range.t input/test/re_tests input/test/recurse.t input/test/redef.pl input/test/ref.pl input/test/regexp.t input/test/regexp_noamp.t input/test/regmesg.pl input/test/repeat.t input/test/reverse.t input/test/rs.t input/test/sleep.t input/test/sort.t input/test/splice.t input/test/study.t input/test/sub_lval.t input/test/subst.t input/test/subst_amp.t input/test/subst_wamp.t input/test/test.pl input/test/test.pm input/test/tr.t input/test/undef.t input/test/unshift.t input/test/vec.t input/test/wantarray.t do_runme_test.sh"
+inputdirs=" input/all/lib input/all/rules"
+tar cjf $outfile --transform="s:^input/\(all\|test\)/::" $inputfiles $inputdirs
