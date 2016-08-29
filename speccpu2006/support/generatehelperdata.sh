@@ -185,10 +185,12 @@ for BENCHDIR in $BENCHMARKS; do
       echo runscript="runme_${SIZE}.sh"
       echo referencedir=reference/${SIZE}/
       echo comparescript="compare_${SIZE}.sh"
+      echo inputfilesarchive="input_$SIZE.tar.bz2"
+      echo inputfilesarchivescript="tar_input_$SIZE.sh"
+      echo pbs_run_remote="pbs_$SIZE.sh"
     ) > "$HELPERBASEDIR/regression_${SIZE}".conf
-    # add entry to the main regression configuration file
-    (
-      echo ""
+
+    BENCHNAME_CLEAN=$(
       case $BENCHNAME in
         sphinx3)
           echo "sphinx_livepretend"
@@ -199,10 +201,87 @@ for BENCHDIR in $BENCHMARKS; do
         *)
           echo $BENCHNAME
       esac
+    )
+
+    # add entry to the main regression configuration file
+    (
+      echo ""
+      echo $BENCHNAME_CLEAN
       echo $BENCHDIR
       echo $BENCHDIR
       echo regression_${SIZE}.conf
     ) >> "$REGRESSIONCONF"
+
+    # script to create tarball for inputs
+    (
+      echo "#!/usr/bin/env bash"
+      echo "cd \`dirname \$0\`"
+      echo outfile="input_${SIZE}.tar.bz2"
+      echo "if [ -e \$outfile ]; then"
+      echo "  exit 0"
+      echo "fi"
+      echo inputfiles=\""$INPUTFILES"\"
+      echo inputdirs=\""$INPUTDIRS"\"
+      echo "tar cjf \$outfile --transform=\"s:^input/\(all\|$SIZE\)/::\" \$inputfiles \$inputdirs"
+    ) > "$HELPERBASEDIR"/tar_input_${SIZE}.sh
+
+    # PBS job file for this benchmark
+    DBACKSLASH="\\\\\\"
+    PBS_FILE="$HELPERBASEDIR"/pbs_${SIZE}.sh
+
+    # script header
+    (
+      echo "#!/usr/bin/env bash"
+      echo "sleep_time=2"
+      echo "jobid=\`("
+    ) > $PBS_FILE
+
+    # inline PBS file
+    (
+      echo "  echo \"#!/usr/bin/env bash\""
+      echo "  echo \"#PBS -N Regression_$BENCHNAME\""
+      echo "  echo \"#PBS -l nodes=1:VAR_NODE_PROPERTIES\""
+      echo "  echo \"#PBS -u pbs\""
+      echo "  echo \"d=$DBACKSLASH\$HOME/$DBACKSLASH\$PBS_JOBID\""
+      echo "  echo \"function stagein()\""
+      echo "  echo \"{\""
+      echo "  echo \"  scp $DBACKSLASH\$PBS_O_HOST:$DBACKSLASH\$PBS_O_WORKDIR/input_$SIZE.tar.bz2 .\""
+      echo "  echo \"  scp $DBACKSLASH\$PBS_O_HOST:$DBACKSLASH\$PBS_O_WORKDIR/$BENCHNAME_CLEAN .\""
+      echo "  echo \"}\""
+      echo "  echo \"function stageout()\""
+      echo "  echo \"{\""
+    ) >> $PBS_FILE
+
+    # output files
+    for OUTPUT in $OUTPUTFILES; do
+      echo "  echo \"  scp $OUTPUT $DBACKSLASH\$PBS_O_HOST:$DBACKSLASH\$PBS_O_WORKDIR/\"" >> $PBS_FILE
+    done
+
+    (
+      echo "  echo \"}\""
+      echo "  echo \"function run()\""
+      echo "  echo \"{\""
+      echo "  echo \"  tar xf input_$SIZE.tar.bz2\""
+      echo "  echo \"  ./do_runme_$SIZE.sh\""
+      echo "  echo \"}\""
+      echo "  echo \"olddir=$DBACKSLASH\$PWD\""
+      echo "  echo \"mkdir -p $DBACKSLASH\$d && cd $DBACKSLASH\$d\""
+      echo "  echo \"echo host: $DBACKSLASH\`uname -n$DBACKSLASH\`\""
+      echo "  echo \"stagein\""
+      echo "  echo \"run\""
+      echo "  echo \"stageout\""
+      echo "  echo \"cd $DBACKSLASH\$olddir\""
+      echo "  echo \"rm -r $DBACKSLASH\$d\""
+    ) >> $PBS_FILE
+
+    # outline script
+    (
+      echo ") | qsub\`"
+      echo "status=\`qstat | grep \$jobid\`"
+      echo "while [ -n \"\$status\" ]; do"
+      echo "  sleep \$sleep_time"
+      echo "  status=\`qstat | grep \$jobid\`"
+      echo "done"
+    ) >> $PBS_FILE
   done
 done
-
