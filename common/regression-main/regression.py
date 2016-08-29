@@ -35,6 +35,7 @@ keep_suffix = ".diablo"
 exec_previous = 0
 copy_output = 0
 copy_output_directory = "output"
+run_from_pbs = 0
 
 # configurable in the general config file
 basedir = ""
@@ -211,27 +212,42 @@ def test_program(prog,conf):
         shutil.copy("b.out",prog["executable"])
         os.chmod(prog["executable"],0755)
 
-        # input files
-        infiles = conf["inputfiles"].split()
-        for inf in [resolve(x,prog) for x in infiles]:
-            shutil.copy(inf,test_dir)
         shutil.copy(resolve(conf["runscript"],prog),test_dir)
         shutil.copy(resolve(conf["comparescript"],prog),test_dir)
-        if "inputdirs" in conf.keys():
-            # copy the complete directories mentioned here
-            indirs = conf["inputdirs"].split()
-            for ind in indirs:
-                shutil.copytree(resolve(ind,prog), join(test_dir,leaf(ind)))
 
-        # execute the run script
-        scriptcmdline = join(test_dir,os.path.basename(conf["runscript"]))
+        # input files
+        if run_from_pbs:
+            # create input file tarball if necessary
+            scriptcmdline = join(resolve(conf["inputfilesarchivescript"],prog))
+            os.spawnl(os.P_WAIT, "/bin/sh", "sh", scriptcmdline)
+
+            # copy over  other files
+            shutil.copy(resolve(conf["inputfilesarchive"],prog),test_dir)
+            shutil.copy(resolve(conf["pbs_run_remote"],prog),test_dir)
+
+            # submit a new job and wait for it to finish
+            scriptcmdline = join(test_dir, os.path.basename(conf["pbs_run_remote"]))
+        else:
+            infiles = conf["inputfiles"].split()
+            for inf in [resolve(x,prog) for x in infiles]:
+                shutil.copy(inf,test_dir)
+            if "inputdirs" in conf.keys():
+                # copy the complete directories mentioned here
+                indirs = conf["inputdirs"].split()
+                for ind in indirs:
+                    shutil.copytree(resolve(ind,prog), join(test_dir,leaf(ind)))
+
+            # execute the run script
+            scriptcmdline = join(test_dir,os.path.basename(conf["runscript"]))
+
+        # run the required script
         os.spawnl(os.P_WAIT,"/bin/sh","sh",scriptcmdline,str(do_time),str(generate_profile))
 
         # compare the output files
         refdir = resolve(conf["referencedir"], prog)
         comparecmdline = join(test_dir,os.path.basename(conf["comparescript"]))
         test_failed = os.spawnl(os.P_WAIT,"/bin/sh","sh",comparecmdline,refdir,test_dir)
-        
+
         # if there is a post-run command, execute it
         if post_run != "":
             os.system(post_run_interpret(post_run,prog,conf))
@@ -353,10 +369,10 @@ def PrintUsage():
 # {{{ parse the command line arguments 
 def parse_args():
     """parse the command line arguments"""
-    global config_file, diablo_dir, diablo_opts, diablo_prog, do_validation, post_run, binsearch_max, binsearch_logs, generate_profile, generate_profile_obj, use_profile, profile_dir, report, report_file, do_time, do_fresh_checkout, makefile, keep_optimized, keep_suffix, test_dir, exec_previous, copy_output, copy_output_directory
+    global config_file, diablo_dir, diablo_opts, diablo_prog, do_validation, post_run, binsearch_max, binsearch_logs, generate_profile, generate_profile_obj, use_profile, profile_dir, report, report_file, do_time, do_fresh_checkout, makefile, keep_optimized, keep_suffix, test_dir, exec_previous, copy_output, copy_output_directory, run_from_pbs
 
-    short_opts = "c:CD:d:o:p:x:b:B:g:PR:irmf:kK:tT:X:"
-    long_opts = ["config=","copy-output","copy-output-directory","diablo-dir=","diablo-opts=","measure-only","diablo-executable=","post-exec=","binary-search=","binary-search-with-log","generate-profile=","use-profile","profile-directory=","report","report-file=","time","fresh-checkout=","keep-optimized","keep-with-suffix=","temp-test-dir","test-dir=","exec-previous="]
+    short_opts = "c:CD:d:o:p:x:b:B:g:PR:irmf:kK:tT:X:Q"
+    long_opts = ["config=","copy-output","copy-output-directory","diablo-dir=","diablo-opts=","measure-only","diablo-executable=","post-exec=","binary-search=","binary-search-with-log","generate-profile=","use-profile","profile-directory=","report","report-file=","time","fresh-checkout=","keep-optimized","keep-with-suffix=","temp-test-dir","test-dir=","exec-previous=","pbs"]
 
     try:
         opts, args = getopt(sys.argv[1:],short_opts,long_opts);
@@ -413,6 +429,8 @@ def parse_args():
             keep_suffix = arg
         elif opt == "-T" or opt == "--test-dir":
             test_dir = arg
+        elif opt == "-Q" or opt == "--PBS":
+            run_from_pbs = 1
         elif opt == "-t" or opt == "--temp-test-dir":
             test_dir = None
             while test_dir is None:
