@@ -240,7 +240,7 @@ for BENCHDIR in $BENCHMARKS; do
     (
       echo "  echo \"#!/usr/bin/env bash\""
       echo "  echo \"#PBS -N Regression_$BENCHNAME\""
-      echo "  echo \"#PBS -l nodes=1:VAR_NODE_PROPERTIES\""
+      echo "  echo \"#PBS -l nodes=1:VAR_PBS_PROPERTIES\""
       echo "  echo \"#PBS -u pbs\""
       echo "  echo \"d=$DBACKSLASH\$HOME/$DBACKSLASH\$PBS_JOBID\""
       echo "  echo \"function stagein()\""
