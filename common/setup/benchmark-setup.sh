@@ -277,7 +277,7 @@ function setup_benchmarks {
   done
 
   for f in `find . -iname "*.conf"`; do
-    sed -i "s:TEMPLATE_BASE_DIR:${destination_directory}:g" $f
+    sed -i "s:TEMPLATE_BASEDIR:${destination_directory}:g" $f
   done
 
   cd $old_pwd
