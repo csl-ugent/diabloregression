@@ -13,6 +13,7 @@ Usage: $0 [-n] [-k] [-f <SPEC_ARCHIVE>] [-j <SPEC_PAR_BUILD>] [-O <SPEC_OPT_FLAG
   -n                     (opt) Do not unpack the SPEC_CPU2006 tbz install file (assume the unpacked version still exists in the current dir)
   -k                     (opt) Keep unpacked SPEC_CPU2006 install file
   -f SPEC_ARCHIVE        (opt) Specify the the SPEC_CPU2006 install file (default is CSL one under /afs)
+  -i			 (opt) Only build and install the SPEC tool set
   -j SPEC_PAR_BUILD      (opt) Specify the make -j factor for building the SPEC benchmarks (default: 2)
   -O SPEC_OPT_FLAGS      (opt) Specify optimization flags to compile the benchmarks (default: -O2)
   -D                     (opt) Link benchmarks dynamically instead of statically
@@ -33,6 +34,7 @@ SPEC_ARCHIVE="/afs/elis/group/csl/perflab/benchmarks/SPEC_CPU2006v1.1.tar.bz2"
 SPEC_PARALLEL_BUILD_FACTOR=2
 SPEC_OPT_FLAGS=-O2
 SPEC_LINK_STRATEGY=-static
+ONLY_TOOLS=n
 
 
 SPEC_INSTALLDIR=
@@ -41,7 +43,7 @@ CROSSTOOLS_INSTALLED_DIR=
 CROSSTOOLS_PREFIX=
 CLANG_INSTALLED_DIR=
 
-while getopts rnkf:j:O:Dd:c:C:t:p:h\? opt; do
+while getopts irnkf:j:O:Dd:c:C:t:p:h\? opt; do
   case $opt in
     r) ONLY_REBUILD=y
       ;;
@@ -50,6 +52,8 @@ while getopts rnkf:j:O:Dd:c:C:t:p:h\? opt; do
     k) KEEP_UNPACKED_SPEC=y
       ;;
     f) SPEC_ARCHIVE="$OPTARG"
+      ;;
+    i) ONLY_TOOLS=y
       ;;
     j) SPEC_PARALLEL_BUILD_FACTOR="$OPTARG"
       ;;
@@ -77,9 +81,12 @@ shift `expr $OPTIND - 1`
 STARTUP_DIR=`pwd`
 
 checkempty "$SPEC_INSTALLDIR" -d
-checkempty "$SPEC_CONFIG_NAME" -c
-checkempty "$CROSSTOOLS_INSTALLED_DIR" -t
-checkempty "$CROSSTOOLS_PREFIX" -p
+
+if [ x$ONLY_TOOLS = xn ]; then
+  checkempty "$SPEC_CONFIG_NAME" -c
+  checkempty "$CROSSTOOLS_INSTALLED_DIR" -t
+  checkempty "$CROSSTOOLS_PREFIX" -p
+fi
 
 if [ x$ONLY_REBUILD = xn ]; then
 # check arguments
@@ -113,7 +120,7 @@ PATCHES_DIR="`dir_make_and_resolve \"${PATCHES_DIR}\"`"
 
 # sanity check for crosstools install dir
 EXTRA_CROSSTOOLS_PREFIX_DIR=1
-if [ ! -x "$CROSSTOOLS_INSTALLED_DIR"/"$CROSSTOOLS_PREFIX"/bin/"$CROSSTOOLS_PREFIX"-gcc ]; then
+if [ ! -x "$CROSSTOOLS_INSTALLED_DIR"/"$CROSSTOOLS_PREFIX"/bin/"$CROSSTOOLS_PREFIX"-gcc ] && [ x$ONLY_TOOLS = xn ]; then
   EXTRA_CROSSTOOLS_PREFIX_DIR=0
   if [ ! -x "$CROSSTOOLS_INSTALLED_DIR"/bin/"$CROSSTOOLS_PREFIX"-gcc ]; then
     echo Neither "$CROSSTOOLS_INSTALLED_DIR"/bin/"$CROSSTOOLS_PREFIX"-gcc nor "$CROSSTOOLS_INSTALLED_DIR"/"$CROSSTOOLS_PREFIX"/bin/"$CROSSTOOLS_PREFIX"-gcc exists or is not executable, check "<CT_INSTALLED_DIR> and <CT_PREFIX> parameters to this script"
@@ -195,6 +202,10 @@ else
     echo
     exit 1
   fi
+fi
+
+if [ x"$ONLY_TOOLS" = xy ]; then
+  exit
 fi
 
 cd "$SPEC_INSTALLDIR"
