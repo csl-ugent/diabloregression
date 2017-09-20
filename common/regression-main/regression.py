@@ -2,6 +2,7 @@
 import sys
 import os
 import shutil
+import subprocess
 import filecmp
 import time
 from os.path import join, expanduser
@@ -219,7 +220,7 @@ def test_program(prog,conf):
         if run_from_pbs:
             # create input file tarball if necessary
             scriptcmdline = join(resolve(conf["inputfilesarchivescript"],prog))
-            os.spawnl(os.P_WAIT, "/bin/sh", "sh", scriptcmdline)
+            subprocess.check_call([scriptcmdline])
 
             # copy over  other files
             shutil.copy(resolve(conf["inputfilesarchive"],prog),test_dir)
@@ -241,12 +242,12 @@ def test_program(prog,conf):
             scriptcmdline = join(test_dir,os.path.basename(conf["runscript"]))
 
         # run the required script
-        os.spawnl(os.P_WAIT,"/bin/sh","sh",scriptcmdline,str(do_time),str(generate_profile))
+        subprocess.check_call([scriptcmdline, str(do_time), str(generate_profile)])
 
         # compare the output files
         refdir = resolve(conf["referencedir"], prog)
         comparecmdline = join(test_dir,os.path.basename(conf["comparescript"]))
-        test_failed = os.spawnl(os.P_WAIT,"/bin/sh","sh",comparecmdline,refdir,test_dir)
+        test_failed = subprocess.call([comparecmdline, refdir, test_dir])
 
         # if there is a post-run command, execute it
         if post_run != "":
