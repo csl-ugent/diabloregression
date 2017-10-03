@@ -56,6 +56,17 @@ function remote_file_exists {
 	fi
 }
 
+function choose_remote_file {
+	a=$1
+	b=$2
+
+	if ssh ${TYR_USER}@${TYR_HOST} [ -f $a ]; then
+		echo $a
+	else
+		echo $b
+	fi
+}
+
 function download {
 	src=$1
 	dst=$2

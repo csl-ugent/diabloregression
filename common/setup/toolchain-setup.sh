@@ -151,11 +151,19 @@ check_empty "$toolchain_id" "please provide the ID of the toolchain to be instal
 tc_path=${TOOLCHAIN["$toolchain_id"]}
 tc_destination=`get_toolchain_directory $tc_path`
 
-tc_archive=/mnt/data/toolchains/${tc_path}.tar.bz2
+tc_host=$(
+. /etc/*release*
+name=`echo $VERSION | sed -r "s/.*\(([^\)]+)\)/\1/"`
+echo ${ID}-${name}
+)
+
+tc_archive_1=/mnt/data/toolchains/${tc_path}.${tc_host}.tar.bz2
+tc_archive_2=/mnt/data/toolchains/${tc_path}.tar.bz2
+tc_archive=`choose_remote_file "$tc_archive_1" "$tc_archive_2"`
+echo "Host system is '$tc_host', chose tarball '$tc_archive'"
 
 tmp_file=`make_temp_suffix .tar.bz2`
 download $tc_archive $tmp_file
-
 echo "installing to $tc_destination"
 install_toolchain $tmp_file $tc_destination
 
