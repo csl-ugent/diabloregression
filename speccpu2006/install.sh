@@ -22,6 +22,7 @@ Usage: $0 [-n] [-k] [-f <SPEC_ARCHIVE>] [-j <SPEC_PAR_BUILD>] [-O <SPEC_OPT_FLAG
   -t CT_INSTALLED_DIR    (req) Specify the directory under which the crosstools have been installed (parameter passed to build.sh of Diablo binutils)
   -p CT_PREFIX           (req) Specify the prefix of the used binutils (e.g. arm-unknown-linux-gnueabi)
   -C CLANG_INSTALLED_DIR (opt) Specify the directry in which clang has been installed (will compile benchmarks with clang)
+  -l                     (opt) When building with clang, also assemble with it (instead of using gcc).
   -h/-?                  (opt) Print this text and exit
 HELP
 exit 1
@@ -35,6 +36,7 @@ SPEC_PARALLEL_BUILD_FACTOR=2
 SPEC_OPT_FLAGS=-O2
 SPEC_LINK_STRATEGY=-static
 ONLY_TOOLS=n
+GCC_ASSEMBLER=y
 
 
 SPEC_INSTALLDIR=
@@ -43,7 +45,7 @@ CROSSTOOLS_INSTALLED_DIR=
 CROSSTOOLS_PREFIX=
 CLANG_INSTALLED_DIR=
 
-while getopts irnkf:j:O:Dd:c:C:t:p:h\? opt; do
+while getopts irnklf:j:O:Dd:c:C:t:p:h\? opt; do
   case $opt in
     r) ONLY_REBUILD=y
       ;;
@@ -64,6 +66,8 @@ while getopts irnkf:j:O:Dd:c:C:t:p:h\? opt; do
     d) SPEC_INSTALLDIR="$OPTARG"
       ;;
     C) CLANG_INSTALLED_DIR="$OPTARG"
+      ;;
+    l) GCC_ASSEMBLER=n
       ;;
     c) SPEC_CONFIG_NAME="$OPTARG"
       ;;
@@ -122,7 +126,7 @@ PATCHES_DIR="`dir_make_and_resolve \"${PATCHES_DIR}\"`"
 EXTRA_CROSSTOOLS_PREFIX_DIR=1
 if [ ! -x "$CROSSTOOLS_INSTALLED_DIR"/"$CROSSTOOLS_PREFIX"/bin/"$CROSSTOOLS_PREFIX"-gcc ] && [ x$ONLY_TOOLS = xn ]; then
   EXTRA_CROSSTOOLS_PREFIX_DIR=0
-  if [ ! -x "$CROSSTOOLS_INSTALLED_DIR"/bin/"$CROSSTOOLS_PREFIX"-gcc ]; then
+  if [ ! -x "$CROSSTOOLS_INSTALLED_DIR"/bin/"$CROSSTOOLS_PREFIX"-gcc ] && [ x$GCC_ASSEMBLER = xy ]; then
     echo Neither "$CROSSTOOLS_INSTALLED_DIR"/bin/"$CROSSTOOLS_PREFIX"-gcc nor "$CROSSTOOLS_INSTALLED_DIR"/"$CROSSTOOLS_PREFIX"/bin/"$CROSSTOOLS_PREFIX"-gcc exists or is not executable, check "<CT_INSTALLED_DIR> and <CT_PREFIX> parameters to this script"
     echo
     exit 1
@@ -223,7 +227,10 @@ fi
 if [ ! -z "$CLANG_INSTALLED_DIR" ]; then
   SED_FILTER_GCC_TO_CLANG="s!DIABLO_CROSSTOOLS_INSTALLED_DIR/DIABLO_CROSSTOOLS_PREFIX/bin/DIABLO_CROSSTOOLS_PREFIX-gcc!$CLANG_INSTALLED_DIR/bin/clang!g"
   SED_FILTER_GPLUSPLUS_TO_CLANG="s!DIABLO_CROSSTOOLS_INSTALLED_DIR/DIABLO_CROSSTOOLS_PREFIX/bin/DIABLO_CROSSTOOLS_PREFIX-g++!$CLANG_INSTALLED_DIR/bin/clang++!g"
-  SPEC_OPT_FLAGS="$SPEC_OPT_FLAGS -isysroot $CROSSTOOLS_ROOT/$CROSSTOOLS_PREFIX/sysroot -no-integrated-as -gcc-toolchain $CROSSTOOLS_ROOT -ccc-gcc-name $CROSSTOOLS_PREFIX -target $CROSSTOOLS_PREFIX -Wl,--no-demangle"
+  SPEC_OPT_FLAGS="$SPEC_OPT_FLAGS -isysroot $CROSSTOOLS_ROOT/$CROSSTOOLS_PREFIX/sysroot -ccc-gcc-name $CROSSTOOLS_PREFIX -target $CROSSTOOLS_PREFIX -Wl,--no-demangle"
+  if [ x$GCC_ASSEMBLER = xy ]; then
+    SPEC_OPT_FLAGS="$SPEC_OPT_FLAGS -no-integrated-as -gcc-toolchain $CROSSTOOLS_ROOT"
+  fi
   SPEC_EXCLUDE_BENCHMARKS="^410.bwaves ^416.gamess ^434.zeusmp ^435.gromacs ^436.cactusADM ^437.leslie3d ^454.calculix ^459.GemsFDTD ^465.tonto ^481.wrf"
 else
   GCCVERSION=`"$CROSSTOOLS_ROOT"/bin/"$CROSSTOOLS_PREFIX"-gcc --version|head -1 | sed -e 's/([^\)]*)//g' | sed -e 's/\s\+/ /g' | cut -d' ' -f2`
