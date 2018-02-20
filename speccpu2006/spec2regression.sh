@@ -287,7 +287,7 @@ set -e
 # add command to copy the output files back to this machine
      SCP_PARAS=`echo $SSH_PARAS | sed -e 's!-p *\([^ \t][^ \t]*\)!-P \1!'`
 # curly brances are only expanded if there's at least one comma :/
-     echo "scp $SCP_PARAS:\"${SSH_REMOTE_DIR}/$dir/\"{"${reffiles}\$\{SCPPROFILEFILE\}"}" .
+     echo "scp $SCP_PARAS:\"${SSH_REMOTE_DIR}/$dir/\"{"${reffiles}\$\{SCPPROFILEFILE\}"} . || true"
    else
      echo 'dotime=$1'
      echo 'collectprofile=$2'
