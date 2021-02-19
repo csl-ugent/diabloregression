@@ -167,6 +167,8 @@ if [ x"$ONLY_REBUILD" = xn ]; then
   cd tools/src
 # some files are read-only, yet have to be overwritten
   chmod -R u+w .
+# patch the make src to allow for newer version of glob
+  patch -p1 < "$PATCHES_DIR"/buildtools-make-newer-glob-versions.patch >/dev/null
 # patch the buildtools script so it doesn't complain if some perl tests fail (it's harmless)
   patch -p1 < "$PATCHES_DIR"/buildtools-ignore-harmless-specperl-error.patch >/dev/null
 # patch md5sum so it doesn't redeclare getline/getdelim when unnecessary (causing potential useless conflicts with system headers)
