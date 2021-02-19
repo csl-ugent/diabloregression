@@ -53,7 +53,7 @@
  
  #####################################################################
  # 32/64 bit Portability Flags - all
-@@ -112,15 +114,24 @@
+@@ -112,15 +114,30 @@
  #####################################################################
  
  400.perlbench=default=default=default:
@@ -67,17 +67,23 @@
  CPORTABILITY= -DSPEC_CPU_LINUX
  
 +447.dealII=default=default=default:
-+CXXPORTABILITY= -include cstddef -include cstring -include cstdlib
++CXXPORTABILITY= -include cstddef -include cstring -include cstdlib -std=gnu++98
 +
 +464.h264ref=default=default=default:
 +CPORTABILITY= -fsigned-char
 +
  483.xalancbmk=default=default=default:
 -CXXPORTABILITY= -DSPEC_CPU_LINUX
-+CXXPORTABILITY= -DSPEC_CPU_LINUX -include cstdlib -include cstring
++CXXPORTABILITY= -DSPEC_CPU_LINUX -include cstdlib -include cstring -std=gnu++98
 +
 +482.sphinx3=default=default=default:
 +CPORTABILITY= -fsigned-char
++
++450.soplex=default=default=default:
++CXXPORTABILITY= -std=gnu++98
++
++473.astar=default=default=default:
++CXXPORTABILITY= -std=gnu++98
  
  
  #####################################################################
